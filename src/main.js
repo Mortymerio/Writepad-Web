@@ -573,25 +573,30 @@ setupSidebarResize('right-sidebar-resize-handle', 'right-sidebar', 'right-sideba
 // ────────────────────────────────────────────────────────────────────────────
 
 
+const safeOnClick = (id, handler) => {
+  const el = document.getElementById(id);
+  if (el) el.onclick = handler;
+};
+
 // AI Modal Listeners
-document.getElementById('menu-ai').onclick = () => {
+safeOnClick('menu-ai', () => {
   document.getElementById('ai-api-key').value = localStorage.getItem('ai-api-key') || '';
   document.getElementById('ai-model').value = localStorage.getItem('ai-model') || 'gemini-1.5-pro';
   document.getElementById('ai-config-modal').style.display = 'flex';
-};
+});
 
-document.getElementById('btn-close-ai-config').onclick = () => {
+safeOnClick('btn-close-ai-config', () => {
   document.getElementById('ai-config-modal').style.display = 'none';
-};
+});
 
-document.getElementById('btn-save-ai-config').onclick = () => {
+safeOnClick('btn-save-ai-config', () => {
   localStorage.setItem('ai-api-key', document.getElementById('ai-api-key').value);
   localStorage.setItem('ai-model', document.getElementById('ai-model').value);
   document.getElementById('ai-config-modal').style.display = 'none';
   ToastManager.success('AI Settings saved!');
-};
+});
 
-document.getElementById('btn-fetch-models').onclick = async () => {
+safeOnClick('btn-fetch-models', async () => {
   const apiKey = document.getElementById('ai-api-key').value;
   if (!apiKey) {
     ToastManager.warning('Primero ingresa una API Key válida en la caja de texto.');
@@ -629,16 +634,16 @@ document.getElementById('btn-fetch-models').onclick = async () => {
 const aiPromptBox = document.getElementById('ai-prompt-box');
 const aiPromptInput = document.getElementById('ai-prompt-input');
 
-document.getElementById('btn-ai-prompt').onclick = () => {
+safeOnClick('btn-ai-prompt', () => {
   if (aiPromptBox.style.display === 'none') {
     aiPromptBox.style.display = 'block';
     aiPromptInput.focus();
   } else {
     aiPromptBox.style.display = 'none';
   }
-};
+});
 
-document.getElementById('btn-ai-prompt-submit').onclick = async () => {
+safeOnClick('btn-ai-prompt-submit', async () => {
   const prompt = aiPromptInput.value;
   if (!prompt) return;
   
@@ -658,22 +663,22 @@ aiPromptInput.addEventListener('keydown', async (e) => {
 let isRecording = false;
 let macroActions = [];
 
-document.getElementById('btn-macro-record').onclick = () => {
+safeOnClick('btn-macro-record', () => {
   if (isRecording) return;
   isRecording = true;
   macroActions = [];
   document.getElementById('btn-macro-record').classList.add('recording');
   document.getElementById('menu-macro-record').classList.add('checked');
-};
+});
 
-document.getElementById('btn-macro-stop').onclick = () => {
+safeOnClick('btn-macro-stop', () => {
   if (!isRecording) return;
   isRecording = false;
   document.getElementById('btn-macro-record').classList.remove('recording');
   document.getElementById('menu-macro-record').classList.remove('checked');
-};
+});
 
-document.getElementById('btn-macro-play').onclick = () => {
+safeOnClick('btn-macro-play', () => {
   if (isRecording || macroActions.length === 0) return;
   
   editor.focus();
@@ -691,20 +696,20 @@ document.getElementById('btn-macro-play').onclick = () => {
 };
 
 // 9. About Modal
-document.getElementById('menu-about').onclick = () => {
+safeOnClick('menu-about', () => {
   document.getElementById('about-modal').style.display = 'flex';
-};
+});
 
-document.getElementById('btn-close-about').onclick = () => {
+safeOnClick('btn-close-about', () => {
   document.getElementById('about-modal').style.display = 'none';
-};
+});
 
 // Close modal if clicked outside
-document.getElementById('about-modal').onclick = (e) => {
+safeOnClick('about-modal', (e) => {
   if (e.target.id === 'about-modal') {
     document.getElementById('about-modal').style.display = 'none';
   }
-};
+});
 
 // Cloud Sync (Removed per user request)
 
@@ -723,7 +728,7 @@ window.stopMonitoring = function() {
   if (editor) editor.updateOptions({ readOnly: false });
 };
 
-document.getElementById('btn-monitor').onclick = async () => {
+safeOnClick('btn-monitor', async () => {
   if (monitoringIntervalId) {
     window.stopMonitoring();
     return;
@@ -760,7 +765,7 @@ document.getElementById('btn-monitor').onclick = async () => {
   }, 1000);
 };
 
-document.getElementById('btn-vim-mode').onclick = () => {
+safeOnClick('btn-vim-mode', () => {
   const vimStatusEl = document.getElementById('vim-status');
   const btn = document.getElementById('btn-vim-mode');
   
