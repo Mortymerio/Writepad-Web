@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <script>window.onerror = function(msg, url, lineNo, columnNo, error) { console.error('[WritepadError]', msg, 'Line:', lineNo); return true; };</script>
+    <script>window.onerror = function(msg, url, lineNo, columnNo, error) { 
+      console.error('[WritepadError]', msg, 'Line:', lineNo); 
+      import('./src/ui/ToastManager.js').then(m => m.ToastManager.error('Error: ' + msg)).catch(() => alert('Error: ' + msg));
+      return true; 
+    };</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer">
