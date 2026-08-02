@@ -1,18 +1,62 @@
 import * as monaco from 'monaco-editor';
 
+// IndexedDB helper for storing FileSystemDirectoryHandle
+const WorkspaceDB = {
+  _db: null,
+  async open() {
+    if (this._db) return this._db;
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open('writepad_workspace', 1);
+      req.onupgradeneeded = e => e.target.result.createObjectStore('handles', { keyPath: 'id' });
+      req.onsuccess = e => { this._db = e.target.result; resolve(this._db); };
+      req.onerror = () => reject(req.error);
+    });
+  },
+  async save(handle) {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put({ id: 'workspace', handle });
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  },
+  async load() {
+    try {
+      const db = await this.open();
+      return new Promise((resolve) => {
+        const tx = db.transaction('handles', 'readonly');
+        const req = tx.objectStore('handles').get('workspace');
+        req.onsuccess = () => resolve(req.result?.handle || null);
+        req.onerror = () => resolve(null);
+      });
+    } catch { return null; }
+  },
+  async clear() {
+    try {
+      const db = await this.open();
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').delete('workspace');
+    } catch {}
+  }
+};
+
 export const SidebarManager = {
   activeSidebar: null,
   activeRightSidebar: null,
   workspaceHandle: null,
   callbacks: {},
 
-  init(callbacks) {
+  async init(callbacks) {
     this.callbacks = callbacks;
     window.addEventListener('macrosUpdated', () => {
       if (this.activeSidebar === 'macros') {
         this.updateSidebarContent();
       }
     });
+
+    // Try to restore workspace folder from previous session
+    await this.restoreWorkspaceHandle();
     
     const rightCloseBtn = document.getElementById('btn-right-sidebar-close');
     if (rightCloseBtn) {
@@ -321,10 +365,12 @@ export const SidebarManager = {
       const btnContainer = document.createElement('div');
       btnContainer.style.padding = '10px';
       const btn = document.createElement('button');
-      btn.innerText = 'Open Folder...';
+      btn.innerText = '📂 Open Folder...';
+      btn.style.cssText = 'padding: 6px 12px; cursor: pointer;';
       btn.onclick = async () => {
         try {
           this.workspaceHandle = await window.showDirectoryPicker();
+          await WorkspaceDB.save(this.workspaceHandle);
           this.updateSidebarContent();
         } catch (err) {
           console.log("Directory picker cancelled or failed", err);
@@ -334,6 +380,22 @@ export const SidebarManager = {
       container.appendChild(btnContainer);
       return;
     }
+    
+    // Add a header showing the open folder with a close button
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:var(--bg-secondary); border-bottom:1px solid var(--border-dark); font-size:12px;';
+    header.innerHTML = `<span title="${this.workspaceHandle.name}">📁 <strong>${this.workspaceHandle.name}</strong></span>`;
+    const closeFolderBtn = document.createElement('button');
+    closeFolderBtn.innerText = '✕';
+    closeFolderBtn.title = 'Close Folder';
+    closeFolderBtn.style.cssText = 'background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:14px;';
+    closeFolderBtn.onclick = async () => {
+      this.workspaceHandle = null;
+      await WorkspaceDB.clear();
+      this.updateSidebarContent();
+    };
+    header.appendChild(closeFolderBtn);
+    container.appendChild(header);
     
     const buildTree = async (handle, parentEl) => {
       for await (const entry of handle.values()) {
@@ -403,5 +465,26 @@ export const SidebarManager = {
     root.style.padding = '5px 0';
     await buildTree(this.workspaceHandle, root);
     container.appendChild(root);
+  },
+
+  async restoreWorkspaceHandle() {
+    if (!window.showDirectoryPicker) return;
+    try {
+      const handle = await WorkspaceDB.load();
+      if (!handle) return;
+      // Request permission (required by browsers for security)
+      const permission = await handle.queryPermission({ mode: 'read' });
+      if (permission === 'granted') {
+        this.workspaceHandle = handle;
+      } else {
+        // Permission was not granted silently — store handle and let user re-open sidebar to trigger prompt
+        const requested = await handle.requestPermission({ mode: 'read' });
+        if (requested === 'granted') {
+          this.workspaceHandle = handle;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not restore workspace handle', e);
+    }
   }
 };
