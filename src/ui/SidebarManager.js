@@ -67,6 +67,12 @@ export const SidebarManager = {
         }
       };
     }
+    
+    // Restore left sidebar state
+    const savedLeftSidebar = localStorage.getItem('writepad_active_left_sidebar');
+    if (savedLeftSidebar) {
+      this.toggleSidebar(savedLeftSidebar);
+    }
   },
 
   toggleSidebar(panelName) {
@@ -113,16 +119,17 @@ export const SidebarManager = {
     const sidebar = document.getElementById('sidebar');
     const title = document.getElementById('sidebar-title');
     
-    // Toggle off if clicking the same button
     if (this.activeSidebar === panelName || panelName === null) {
       sidebar.style.display = 'none';
       this.activeSidebar = null;
+      localStorage.removeItem('writepad_active_left_sidebar');
       if (editor) setTimeout(() => editor.layout(), 10);
       return;
     }
     
     sidebar.style.display = 'flex';
     this.activeSidebar = panelName;
+    localStorage.setItem('writepad_active_left_sidebar', panelName);
     
     if (panelName === 'doc') title.innerText = 'Document List';
     if (panelName === 'func') title.innerText = 'Function List';
