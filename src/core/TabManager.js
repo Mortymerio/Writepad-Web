@@ -249,5 +249,48 @@ export const TabManager = {
         this.markAsSaved(tab);
       }
     }
+  },
+
+  saveWorkspace() {
+    try {
+      const state = {
+        activeTabIndex: this.activeTabIndex,
+        tabs: this.tabs.map(tab => ({
+          title: tab.title,
+          content: tab.model.getValue(),
+          language: tab.model.getLanguageId(),
+          encoding: tab.encoding || Encodings.UTF8
+        }))
+      };
+      localStorage.setItem('writepad_workspace_state', JSON.stringify(state));
+    } catch (e) {
+      console.warn("Failed to save workspace state", e);
+    }
+  },
+
+  restoreWorkspace() {
+    try {
+      const stateJson = localStorage.getItem('writepad_workspace_state');
+      if (!stateJson) return false;
+      
+      const state = JSON.parse(stateJson);
+      if (!state.tabs || state.tabs.length === 0) return false;
+      
+      this.tabs = state.tabs.map(tabData => ({
+        title: tabData.title,
+        model: monaco.editor.createModel(tabData.content, tabData.language),
+        encoding: tabData.encoding,
+        unsavedDecos: [],
+        savedDecos: []
+      }));
+      
+      this.activeTabIndex = state.activeTabIndex >= 0 && state.activeTabIndex < this.tabs.length ? state.activeTabIndex : 0;
+      this.switchTab(this.activeTabIndex);
+      this.renderTabs();
+      return true;
+    } catch (e) {
+      console.error("Failed to restore workspace state", e);
+      return false;
+    }
   }
 };

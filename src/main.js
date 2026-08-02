@@ -303,7 +303,14 @@ function initEditor() {
     stopMonitoring: () => { if (typeof window.stopMonitoring === 'function') window.stopMonitoring(); },
     getLanguageFromExt
   });
-  TabManager.createNewTab('new 1');
+  const restored = TabManager.restoreWorkspace();
+  if (!restored) {
+    TabManager.createNewTab('new 1');
+  }
+
+  // Auto-save workspace every 5 seconds
+  setInterval(() => TabManager.saveWorkspace(), 5000);
+  window.addEventListener('beforeunload', () => TabManager.saveWorkspace());
 
   ToolbarManager.init({
     createNewTab: () => TabManager.createNewTab(),
