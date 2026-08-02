@@ -1,6 +1,7 @@
 import * as monaco from 'monaco-editor';
 import { AIService } from './aiService.js';
 import { marked } from 'marked';
+import { ToastManager } from './ui/ToastManager.js';
 
 let aiDecorations = [];
 let aiContentWidget = null;
@@ -123,10 +124,10 @@ export async function executeAIPrompt(editor, getActiveTab, promptText, commandL
       }
     }]);
     
-    showAIWidget(editor, getActiveTab, newEndLine, prompt, actionLabel);
+    showAIWidget(editor, getActiveTab, newEndLine, promptText, commandLabel);
     
   } catch (err) {
-    alert(err.message);
+    ToastManager.error(err.message);
   } finally {
     document.body.removeChild(statusEl);
   }

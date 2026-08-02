@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "gh-pages": "^6.3.0",
     "js-yaml": "^5.2.3",
     "vite": "^8.2.0"
   },

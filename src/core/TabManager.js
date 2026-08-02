@@ -81,14 +81,21 @@ export const TabManager = {
     this.tabs.forEach((tab, index) => {
       const tabEl = document.createElement('div');
       tabEl.className = `tab ${index === this.activeTabIndex ? 'active' : ''}`;
+      tabEl.title = tab.filePath || tab.title;
+      
+      const isDirty = tab.unsavedDecos && tab.unsavedDecos.length > 0;
       
       const titleEl = document.createElement('span');
-      titleEl.innerText = tab.title;
+      titleEl.className = 'tab-title';
+      titleEl.innerText = (isDirty ? '● ' : '') + tab.title;
+      titleEl.style.color = isDirty ? 'var(--accent)' : '';
       titleEl.onclick = () => this.switchTab(index);
       
       const closeEl = document.createElement('span');
       closeEl.className = 'tab-close';
       closeEl.innerText = '×';
+      closeEl.title = 'Close tab';
+      closeEl.setAttribute('aria-label', `Close ${tab.title}`);
       closeEl.onclick = (e) => {
         e.stopPropagation();
         this.closeTab(index);
@@ -103,7 +110,9 @@ export const TabManager = {
     const addTabBtn = document.createElement('div');
     addTabBtn.className = 'tab add-tab-btn';
     addTabBtn.innerText = '+';
-    addTabBtn.title = 'New Document';
+    addTabBtn.title = 'New Document (Ctrl+N)';
+    addTabBtn.setAttribute('role', 'button');
+    addTabBtn.setAttribute('tabindex', '0');
     addTabBtn.onclick = () => this.createNewTab();
     tabBar.appendChild(addTabBtn);
   },
@@ -198,7 +207,9 @@ export const TabManager = {
     })));
     
     tab.unsavedDecos = tab.model.deltaDecorations(tab.unsavedDecos, []); // Clear unsaved
+    this.renderTabs(); // Update ● indicator
   },
+
 
   async saveToDisk(tab) {
     try {

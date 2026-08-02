@@ -12,6 +12,7 @@ import { MacroEngine } from './core/MacroEngine.js';
 import { ToolsManager } from './core/ToolsManager.js';
 import { CyberTools } from './core/CyberTools.js';
 import { createIcons, icons } from 'lucide';
+import { ToastManager } from './ui/ToastManager.js';
 
 self.MonacoEnvironment = {
   getWorker(workerId, label) {
@@ -159,7 +160,10 @@ function initEditor() {
          range: r,
          options: { isWholeLine: true, linesDecorationsClassName: 'gutter-unsaved' }
       })));
+      // Refresh tab to show ● dirty indicator
+      if (tab.unsavedDecos.length > 0) TabManager.renderTabs();
     }
+
     
     if (SidebarManager.activeSidebar === 'func') {
       clearTimeout(sidebarDebounceTimer);
@@ -276,6 +280,12 @@ function initEditor() {
     document.getElementById('profile-landing').style.display = 'flex';
   } else {
     document.body.className = `profile-${savedProfile}`;
+    // Set profile indicator in status bar
+    const profileEl = document.getElementById('status-profile');
+    if (profileEl) {
+      const profileLabels = { dev: '💻 Dev', sec: '🛡 Sec', all: '🌌 God' };
+      profileEl.textContent = profileLabels[savedProfile] || savedProfile;
+    }
   }
 
   document.querySelectorAll('.profile-card').forEach(card => {
@@ -285,6 +295,12 @@ function initEditor() {
       document.body.className = `profile-${profile}`;
       updateAIProfileContext(profile);
       document.getElementById('profile-landing').style.display = 'none';
+      // Update status bar profile indicator
+      const profileEl = document.getElementById('status-profile');
+      if (profileEl) {
+        const profileLabels = { dev: '💻 Dev', sec: '🛡 Sec', all: '🌌 God' };
+        profileEl.textContent = profileLabels[profile] || profile;
+      }
     };
   });
 
@@ -329,9 +345,9 @@ function initEditor() {
     macroRunMulti: (times) => MacroEngine.playMacro(undefined, times),
     macroSave: (name) => {
       if (MacroEngine.saveCurrentMacro(name)) {
-        alert("Macro saved!");
+        ToastManager.success('Macro saved!');
       } else {
-        alert("Nothing recorded to save.");
+        ToastManager.warning('Nothing recorded to save.');
       }
     },
     toggleVim: () => {
@@ -371,7 +387,19 @@ function updateStatusBar() {
     }
     
     if (model) {
-      document.getElementById('status-lang').innerText = model.getLanguageId();
+      const langId = model.getLanguageId();
+      // Capitalize and prettify language name
+      const langDisplayMap = {
+        'plaintext': 'Plain Text', 'javascript': 'JavaScript', 'typescript': 'TypeScript',
+        'html': 'HTML', 'css': 'CSS', 'scss': 'SCSS', 'less': 'Less',
+        'json': 'JSON', 'markdown': 'Markdown', 'python': 'Python', 'java': 'Java',
+        'cpp': 'C++', 'c': 'C', 'csharp': 'C#', 'go': 'Go', 'rust': 'Rust',
+        'ruby': 'Ruby', 'php': 'PHP', 'sql': 'SQL', 'xml': 'XML', 'yaml': 'YAML',
+        'shell': 'Shell', 'powershell': 'PowerShell', 'dockerfile': 'Dockerfile',
+        'kotlin': 'Kotlin', 'swift': 'Swift', 'dart': 'Dart', 'lua': 'Lua',
+        'r': 'R', 'perl': 'Perl', 'scala': 'Scala', 'elixir': 'Elixir',
+      };
+      document.getElementById('status-lang').innerText = langDisplayMap[langId] || langId.charAt(0).toUpperCase() + langId.slice(1);
     }
   }
 
@@ -501,10 +529,19 @@ function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
 
+    let tooltip = document.createElement('div');
+    tooltip.style.cssText = 'position:fixed; background:rgba(0,0,0,0.8); color:#fff; padding:2px 6px; border-radius:3px; font-size:11px; z-index:10000; pointer-events:none; white-space:nowrap; transform:translate(-50%, -100%); margin-top:-10px; font-family:"Inter", sans-serif;';
+    document.body.appendChild(tooltip);
+
     const onMove = (e) => {
       const delta = isRight ? (startX - e.clientX) : (e.clientX - startX);
       const newWidth = Math.min(600, Math.max(150, startWidth + delta));
       sidebar.style.width = newWidth + 'px';
+      
+      tooltip.innerText = `Width: ${newWidth}px`;
+      tooltip.style.left = e.clientX + 'px';
+      tooltip.style.top = e.clientY + 'px';
+      
       editor.layout(); // re-layout Monaco
     };
 
@@ -512,6 +549,7 @@ function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
       handle.classList.remove('dragging');
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
+      tooltip.remove();
       localStorage.setItem(storageKey, parseInt(sidebar.style.width));
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
@@ -542,13 +580,13 @@ document.getElementById('btn-save-ai-config').onclick = () => {
   localStorage.setItem('ai-api-key', document.getElementById('ai-api-key').value);
   localStorage.setItem('ai-model', document.getElementById('ai-model').value);
   document.getElementById('ai-config-modal').style.display = 'none';
-  alert("AI Settings saved!");
+  ToastManager.success('AI Settings saved!');
 };
 
 document.getElementById('btn-fetch-models').onclick = async () => {
   const apiKey = document.getElementById('ai-api-key').value;
   if (!apiKey) {
-    alert("Primero ingresa una API Key válida en la caja de texto.");
+    ToastManager.warning('Primero ingresa una API Key válida en la caja de texto.');
     return;
   }
   
@@ -573,9 +611,9 @@ document.getElementById('btn-fetch-models').onclick = async () => {
       select.appendChild(option);
     });
     
-    alert(`¡Se encontraron ${models.length} modelos de Gemini!`);
+    ToastManager.success(`¡Se encontraron ${models.length} modelos de Gemini!`);
   } catch (err) {
-    alert("Error fetching models: " + err.message);
+    ToastManager.error("Error fetching models: " + err.message);
   }
 };
 
@@ -686,7 +724,7 @@ document.getElementById('btn-monitor').onclick = async () => {
   const tab = TabManager.getActiveTab();
   if (!tab) return;
   if (!tab.fileHandle) {
-    alert("❌ Solo se pueden monitorear archivos abiertos desde tu disco usando 'Abrir' en navegadores modernos.");
+    ToastManager.warning("❌ Solo se pueden monitorear archivos abiertos desde tu disco usando 'Abrir' en navegadores modernos.");
     return;
   }
   
@@ -743,8 +781,9 @@ document.getElementById('theme-selector').onchange = async (e) => {
   const option = e.target.options[e.target.selectedIndex];
   const isDark = option.parentElement.label === 'Dark Themes' || theme === 'github-dark';
   
+  // Set data-theme attribute for CSS theme variables
   if (isDark) {
-    document.body.setAttribute('data-theme', 'github-dark');
+    document.body.setAttribute('data-theme', theme);
   } else {
     document.body.removeAttribute('data-theme');
   }
@@ -771,7 +810,7 @@ document.getElementById('theme-selector').onchange = async (e) => {
     monaco.editor.setTheme(safeThemeName);
   } catch (err) {
     console.error("Failed to load theme:", err);
-    alert(`Error loading theme '${theme}': ` + err.message + `\nAsegúrate de que los archivos estén en public/themes/ y refresca la página con F5.`);
+    ToastManager.error(`Error loading theme '${theme}': ` + err.message);
   }
 };
 
@@ -819,7 +858,7 @@ function setupPluginAPI() {
       btn.onclick = onClick;
       document.getElementById('toolbar').appendChild(btn);
     },
-    showNotification: (msg) => alert(msg)
+    showNotification: (msg) => ToastManager.info(msg)
   };
   
   // Apply visual states for toggles

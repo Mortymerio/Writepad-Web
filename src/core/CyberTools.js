@@ -1,3 +1,5 @@
+import { ToastManager } from '../ui/ToastManager.js';
+
 export const CyberTools = {
   callbacks: {},
 
@@ -13,7 +15,7 @@ export const CyberTools = {
       const selection = editor.getSelection();
       const text = editor.getModel().getValueInRange(selection);
       if (!text) {
-        alert("No text selected.");
+        ToastManager.warning("No text selected.");
         return null;
       }
       return text;
@@ -78,7 +80,7 @@ export const CyberTools = {
       
       this.showResultModal(`${type.toUpperCase()} ${action}`, "Input", text, "Output", result);
     } catch (e) {
-      alert(`Error processing ${type}: ${e.message}`);
+      ToastManager.error(`Error processing ${type}: ${e.message}`);
     }
   },
 
@@ -99,7 +101,7 @@ export const CyberTools = {
       entropy -= p * Math.log2(p);
     }
     
-    alert(`Shannon Entropy: ${entropy.toFixed(4)}\n\n(A value closer to 8 indicates highly compressed or encrypted data.)`);
+    ToastManager.info(`Shannon Entropy: ${entropy.toFixed(4)}\n\n(A value closer to 8 indicates highly compressed or encrypted data.)`);
   },
 
   extractIOCs() {
@@ -137,25 +139,24 @@ export const CyberTools = {
   },
 
   decodeJWT() {
-    const text = this.getEditorText(true);
-    if (text === null) return;
-    
-    const parts = text.trim().split('.');
-    if (parts.length !== 3) {
-      alert("Invalid JWT format. A JWT must have 3 parts separated by dots.");
-      return;
-    }
+    const jwt = this.getEditorText(true);
+    if (jwt === null) return;
     
     try {
+      const parts = jwt.trim().split('.');
+      if (parts.length !== 3) {
+        ToastManager.warning("Invalid JWT format. A JWT must have 3 parts separated by dots.");
+        return;
+      }
+      
       const header = JSON.parse(atob(parts[0]));
       const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
       
-      let report = `=== JWT Header ===\n${JSON.stringify(header, null, 2)}\n\n`;
-      report += `=== JWT Payload ===\n${JSON.stringify(payload, null, 2)}\n`;
+      const formatted = `=== JWT Header ===\n${JSON.stringify(header, null, 2)}\n\n=== JWT Payload ===\n${JSON.stringify(payload, null, 2)}\n`;
       
-      this.showResultModal("JWT Decoder", "Original Token", text, "Decoded", report);
+      this.showResultModal("JWT Decoder", "Encoded JWT", jwt, "Decoded Content", formatted);
     } catch (e) {
-      alert("Error decoding JWT: " + e.message);
+      ToastManager.error("Error decoding JWT: " + e.message);
     }
   },
 
@@ -180,7 +181,7 @@ export const CyberTools = {
     
     const keyNum = parseInt(key, 10);
     if (isNaN(keyNum) || keyNum < 0 || keyNum > 255) {
-      alert("Invalid key.");
+      ToastManager.warning("Invalid key. Please provide a number between 0 and 255.");
       return;
     }
     

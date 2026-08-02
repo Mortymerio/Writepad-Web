@@ -1,4 +1,5 @@
 import * as monaco from 'monaco-editor';
+import { ToastManager } from './ToastManager.js';
 
 // IndexedDB helper for storing FileSystemDirectoryHandle
 const WorkspaceDB = {
@@ -290,23 +291,47 @@ export const SidebarManager = {
     const tabs = this.callbacks.getTabs();
     const activeTabIndex = this.callbacks.getActiveTabIndex();
     
-    tabs.forEach((tab, index) => {
-      const item = document.createElement('div');
-      item.className = 'sidebar-list-item' + (index === activeTabIndex ? ' active' : '');
-      item.innerHTML = `<span class="icon">📄</span><span style="flex:1">${tab.title}</span>`;
-      
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'close-btn';
-      closeBtn.innerText = '×';
-      closeBtn.onclick = (e) => {
-        e.stopPropagation();
-        this.callbacks.closeTab(index);
-      };
-      
-      item.appendChild(closeBtn);
-      item.onclick = () => this.callbacks.switchTab(index);
-      container.appendChild(item);
-    });
+    // Add search input
+    const searchContainer = document.createElement('div');
+    searchContainer.style.padding = '8px';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search documents...';
+    searchInput.className = 'sidebar-search-input';
+    searchContainer.appendChild(searchInput);
+    container.appendChild(searchContainer);
+    
+    const listContainer = document.createElement('div');
+    listContainer.className = 'sidebar-list-container';
+    container.appendChild(listContainer);
+    
+    const renderList = (query = '') => {
+      listContainer.innerHTML = '';
+      const q = query.toLowerCase();
+      tabs.forEach((tab, index) => {
+        if (q && !tab.title.toLowerCase().includes(q)) return;
+        
+        const item = document.createElement('div');
+        item.className = 'sidebar-list-item' + (index === activeTabIndex ? ' active' : '');
+        item.innerHTML = `<span class="icon">📄</span><span class="tab-title-text" style="flex:1"></span>`;
+        item.querySelector('.tab-title-text').textContent = tab.title;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-btn';
+        closeBtn.innerText = '×';
+        closeBtn.onclick = (e) => {
+          e.stopPropagation();
+          this.callbacks.closeTab(index);
+        };
+        
+        item.appendChild(closeBtn);
+        item.onclick = () => this.callbacks.switchTab(index);
+        listContainer.appendChild(item);
+      });
+    };
+    
+    renderList();
+    searchInput.oninput = (e) => renderList(e.target.value);
   },
 
   renderSidebarFuncList(container) {
@@ -340,19 +365,44 @@ export const SidebarManager = {
       return;
     }
     
-    functions.forEach(func => {
-      const item = document.createElement('div');
-      item.className = 'sidebar-list-item';
-      item.innerHTML = `<span class="icon">ƒ</span> ${func.name}`;
-      item.title = `Line ${func.line}`;
-      item.onclick = () => {
-        editor.revealLineCenter(func.line);
-        editor.setPosition({ lineNumber: func.line, column: 1 });
-        editor.focus();
-      };
+    // Add search input
+    const searchContainer = document.createElement('div');
+    searchContainer.style.padding = '8px';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search functions...';
+    searchInput.className = 'sidebar-search-input';
+    searchContainer.appendChild(searchInput);
+    container.appendChild(searchContainer);
+    
+    const listContainer = document.createElement('div');
+    listContainer.className = 'sidebar-list-container';
+    container.appendChild(listContainer);
+    
+    const renderList = (query = '') => {
+      listContainer.innerHTML = '';
+      const q = query.toLowerCase();
       
-      container.appendChild(item);
-    });
+      functions.forEach(func => {
+        if (q && !func.name.toLowerCase().includes(q)) return;
+        
+        const item = document.createElement('div');
+        item.className = 'sidebar-list-item';
+        item.innerHTML = `<span class="icon">ƒ</span> <span class="func-name-text"></span>`;
+        item.querySelector('.func-name-text').textContent = func.name;
+        item.title = `Line ${func.line}`;
+        item.onclick = () => {
+          editor.revealLineCenter(func.line);
+          editor.setPosition({ lineNumber: func.line, column: 1 });
+          editor.focus();
+        };
+        
+        listContainer.appendChild(item);
+      });
+    };
+    
+    renderList();
+    searchInput.oninput = (e) => renderList(e.target.value);
   },
 
   async renderSidebarWorkspace(container) {
@@ -403,7 +453,8 @@ export const SidebarManager = {
         item.className = 'tree-item';
         
         if (entry.kind === 'file') {
-          item.innerHTML = `<span class="icon">📄</span> ${entry.name}`;
+          item.innerHTML = `<span class="icon">📄</span> <span class="node-name"></span>`;
+          item.querySelector('.node-name').textContent = entry.name;
           item.onclick = async () => {
             try {
               const file = await entry.getFile();
@@ -427,12 +478,13 @@ export const SidebarManager = {
               this.callbacks.switchTab(tabs.length - 1);
               this.callbacks.renderTabs();
             } catch(err) {
-              alert("Error opening file: " + err.message);
+              ToastManager.error("Error opening file: " + err.message);
             }
           };
           parentEl.appendChild(item);
         } else if (entry.kind === 'directory') {
-          item.innerHTML = `<span class="icon">📁</span> ${entry.name}`;
+          item.innerHTML = `<span class="icon">📁</span> <span class="node-name"></span>`;
+          item.querySelector('.node-name').textContent = entry.name;
           
           const childrenContainer = document.createElement('div');
           childrenContainer.className = 'tree-folder-children';
@@ -448,7 +500,12 @@ export const SidebarManager = {
               childrenContainer.classList.add('open');
               item.querySelector('.icon').innerText = '📂';
               if (childrenContainer.childNodes.length === 0) {
-                await buildTree(entry, childrenContainer);
+                item.querySelector('.icon').innerHTML = '<span class="loading-spinner" style="font-size:10px;">⏳</span>';
+                try {
+                  await buildTree(entry, childrenContainer);
+                } finally {
+                  item.querySelector('.icon').innerText = '📂';
+                }
               }
             }
           };

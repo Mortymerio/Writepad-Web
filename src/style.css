@@ -1,18 +1,21 @@
 :root {
-  --bg-primary: #f0f0f0;
-  --bg-secondary: #e0e0e0;
+  --bg-primary: #f5f5f5;
+  --bg-secondary: #e8e8e8;
   --bg-editor: #ffffff;
   --bg-active: #ffffff;
-  --text-primary: #333333;
-  --text-menu: #000;
-  --border-light: #d4d4d4;
-  --border-dark: #a0a0a0;
-  --hover-bg: #e5f3ff;
-  --hover-border: #cce8ff;
-  --bg-status: #333;
-  --text-status: #ddd;
-  --border-status: #111;
+  --text-primary: #1e1e1e;
+  --text-menu: #1e1e1e;
+  --border-light: #d0d0d0;
+  --border-dark: #aaaaaa;
+  --hover-bg: #ddeeff;
+  --hover-border: #99ccff;
+  --bg-status: #e0e0e0;
+  --text-status: #333333;
+  --border-status: #c0c0c0;
   --editor-margin-bg: #f0f0f0;
+  --accent: #0066cc;
+  --tab-border-active: #0066cc;
+  --tab-bg-active: #ddeeff;
 }
 
 [data-theme="github-dark"] {
@@ -29,17 +32,67 @@
   --text-status: #8b949e;
   --border-status: #30363d;
   --editor-margin-bg: #0d1117;
+  --accent: #388bfd;
+  --tab-border-active: #388bfd;
+  --tab-bg-active: #1c2433;
 }
+/* Dracula */
+[data-theme="Dracula"] {
+  --accent: #bd93f9; --tab-border-active: #bd93f9; --tab-bg-active: #2a1f40;
+  --bg-status: #1e1f29; --text-status: #6272a4; --border-status: #44475a;
+}
+/* Nord */
+[data-theme="Nord"] {
+  --accent: #81a1c1; --tab-border-active: #81a1c1; --tab-bg-active: #2e3440;
+  --bg-status: #2e3440; --text-status: #d8dee9; --border-status: #3b4252;
+}
+/* Monokai */
+[data-theme="Monokai"] {
+  --accent: #a6e22e; --tab-border-active: #a6e22e; --tab-bg-active: #3e3d32;
+  --bg-status: #272822; --text-status: #90908a; --border-status: #49483e;
+}
+/* Night Owl */
+[data-theme="Night Owl"] {
+  --accent: #7fdbca; --tab-border-active: #7fdbca; --tab-bg-active: #0f2538;
+  --bg-status: #011627; --text-status: #4b6479; --border-status: #1d3b53;
+}
+/* Oceanic Next */
+[data-theme="Oceanic Next"] {
+  --accent: #6699cc; --tab-border-active: #6699cc; --tab-bg-active: #1b3040;
+  --bg-status: #1B2B34; --text-status: #65737e; --border-status: #2b3e4e;
+}
+/* Tomorrow Night */
+[data-theme="Tomorrow-Night"] {
+  --accent: #81a2be; --tab-border-active: #81a2be; --tab-bg-active: #373b41;
+  --bg-status: #1d1f21; --text-status: #969896; --border-status: #373b41;
+}
+/* Cobalt2/Tokyo Night */
+[data-theme="Cobalt2"] {
+  --accent: #7aa2f7; --tab-border-active: #7aa2f7; --tab-bg-active: #283457;
+  --bg-status: #1a1b2e; --text-status: #3b4261; --border-status: #29355a;
+}
+/* Twilight */
+[data-theme="Twilight"] {
+  --accent: #8fb8c7; --tab-border-active: #8fb8c7; --tab-bg-active: #2a2218;
+  --bg-status: #1f1911; --text-status: #cbc9c3; --border-status: #3d3122;
+}
+/* Solarized Dark */
+[data-theme="Solarized-dark"] {
+  --accent: #268bd2; --tab-border-active: #268bd2; --tab-bg-active: #073642;
+  --bg-status: #002b36; --text-status: #839496; --border-status: #073642;
+}
+
 
 body, html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--bg-primary);
   overflow: hidden;
 }
+
 
 #app {
   display: flex;
@@ -255,7 +308,7 @@ body, html {
 
 .tab.active {
   background-color: var(--bg-active);
-  border-top: 3px solid #ff8c00;
+  border-top: 3px solid var(--accent, #ff8c00);
   font-weight: bold;
   padding-top: 2px;
   position: relative;
@@ -410,6 +463,29 @@ body, html {
   color: red;
 }
 
+.sidebar-search-input {
+  width: 100%;
+  padding: 4px 8px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-dark);
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+}
+
+.sidebar-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.loading-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
 /* Tree View for Workspace */
 .tree-item {
   padding: 4px 5px 4px 15px;
@@ -459,6 +535,20 @@ body, html {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+#status-profile {
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--accent, #0066cc);
+  color: #fff;
+  margin-right: 8px;
+  opacity: 0.85;
 }
 
 .status-left {
@@ -537,6 +627,11 @@ body:not([data-theme="github-dark"]) .monaco-editor .inputarea.ime-input {
 }
 
 /* Modal Styling */
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -549,6 +644,12 @@ body:not([data-theme="github-dark"]) .monaco-editor .inputarea.ime-input {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadein-overlay 0.15s ease;
+}
+
+@keyframes fadein-overlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .modal-content {
@@ -558,9 +659,10 @@ body:not([data-theme="github-dark"]) .monaco-editor .inputarea.ime-input {
   border-radius: 8px;
   width: 450px;
   max-width: 90%;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  animation: modal-in 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .modal-header {

@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { ToastManager } from '../ui/ToastManager.js';
 
 export const ToolsManager = {
   callbacks: {},
@@ -83,15 +84,15 @@ export const ToolsManager = {
     const text = editor.getModel().getValueInRange(selection);
     
     if (!text) {
-      alert("No text selected.");
+      ToastManager.warning("No text selected.");
       return;
     }
 
     const hash = this.computeHash(algorithm, text);
     navigator.clipboard.writeText(hash).then(() => {
-      alert(`${algorithm.toUpperCase()} hash copied to clipboard!\n\n${hash}`);
+      ToastManager.success(`${algorithm.toUpperCase()} hash copied to clipboard!`);
     }).catch(err => {
-      alert(`Failed to copy hash: ${err}`);
+      ToastManager.error(`Failed to copy hash: ${err}`);
     });
   },
 
@@ -125,7 +126,7 @@ export const ToolsManager = {
 
       } catch (err) {
         if (err.name !== 'AbortError') {
-          alert(`Error reading files: ${err.message}`);
+          ToastManager.error(`Error reading files: ${err.message}`);
         }
       }
     } else {
