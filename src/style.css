@@ -804,6 +804,7 @@ body, html {
 }
 
 /* Cyber Mode Logic */
-body:not(.cyber-mode) [data-profile="sec"] {
+body:not(.cyber-mode) [data-profile="sec"],
+body:not(.cyber-mode) [data-profile="cyber"] {
   display: none !important;
 }

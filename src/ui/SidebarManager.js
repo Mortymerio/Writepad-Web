@@ -558,16 +558,13 @@ export const SidebarManager = {
     try {
       const handle = await WorkspaceDB.load();
       if (!handle) return;
-      // Request permission (required by browsers for security)
+      // Check permission
       const permission = await handle.queryPermission({ mode: 'read' });
       if (permission === 'granted') {
         this.workspaceHandle = handle;
       } else {
-        // Permission was not granted silently — store handle and let user re-open sidebar to trigger prompt
-        const requested = await handle.requestPermission({ mode: 'read' });
-        if (requested === 'granted') {
-          this.workspaceHandle = handle;
-        }
+        // DO NOT requestPermission on load because it throws DOMException requiring user gesture
+        console.warn('Workspace needs permission. Open manually.');
       }
     } catch (e) {
       console.warn('Could not restore workspace handle', e);

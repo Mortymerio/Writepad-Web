@@ -1,5 +1,35 @@
 import './style.css';
 import * as monaco from 'monaco-editor';
+
+// GLOBAL ERROR CATCHER FOR DEBUGGING
+window.addEventListener('error', (event) => {
+  const errDiv = document.createElement('div');
+  errDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:rgba(255,0,0,0.9);color:white;z-index:999999;padding:20px;font-family:monospace;white-space:pre-wrap;overflow:auto;max-height:100vh;box-sizing:border-box;';
+  errDiv.innerHTML = `<strong>GLOBAL ERROR:</strong><br>${event.message}<br><br><strong>File:</strong> ${event.filename}:${event.lineno}:${event.colno}<br><br><strong>Stack:</strong><br>${event.error ? event.error.stack : 'No stack'}`;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = 'Close';
+  closeBtn.style.cssText = 'margin-top:10px;padding:5px 10px;cursor:pointer;';
+  closeBtn.onclick = () => errDiv.remove();
+  errDiv.appendChild(closeBtn);
+  
+  document.body.appendChild(errDiv);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  const errDiv = document.createElement('div');
+  errDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:rgba(255,0,0,0.9);color:white;z-index:999999;padding:20px;font-family:monospace;white-space:pre-wrap;overflow:auto;max-height:100vh;box-sizing:border-box;';
+  errDiv.innerHTML = `<strong>UNHANDLED PROMISE REJECTION:</strong><br>${event.reason ? (event.reason.message || event.reason) : 'Unknown reason'}<br><br><strong>Stack:</strong><br>${event.reason && event.reason.stack ? event.reason.stack : 'No stack'}`;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = 'Close';
+  closeBtn.style.cssText = 'margin-top:10px;padding:5px 10px;cursor:pointer;';
+  closeBtn.onclick = () => errDiv.remove();
+  errDiv.appendChild(closeBtn);
+  
+  document.body.appendChild(errDiv);
+});
+
 import { initVimMode } from '../node_modules/monaco-vim/dist/index.mjs';
 import { PluginManager } from './PluginManager.js';
 import { AIService } from './aiService.js';
@@ -277,9 +307,18 @@ function initEditor() {
 
   // Cyber Mode Initialization
   const cyberModeEnabled = localStorage.getItem('writepad_cyber_mode') === 'true';
+  const toggleCyberTools = (enabled) => {
+    document.querySelectorAll('.cyber-tool').forEach(el => {
+      // Toolbar groups should be flex, menu-item-containers should be inline-block
+      const displayType = el.classList.contains('toolbar-group') ? 'flex' : 'inline-block';
+      el.style.display = enabled ? displayType : 'none';
+    });
+  };
+  
   if (cyberModeEnabled) {
     document.body.classList.add('cyber-mode');
   }
+  toggleCyberTools(cyberModeEnabled);
   updateAICyberModeContext(cyberModeEnabled);
 
   TabManager.init({
@@ -563,6 +602,10 @@ safeOnClick('btn-save-preferences', () => {
   } else {
     document.body.classList.remove('cyber-mode');
   }
+  document.querySelectorAll('.cyber-tool').forEach(el => {
+    const displayType = el.classList.contains('toolbar-group') ? 'flex' : 'inline-block';
+    el.style.display = isCyberEnabled ? displayType : 'none';
+  });
   updateAICyberModeContext(isCyberEnabled);
   document.getElementById('preferences-modal').style.display = 'none';
   ToastManager.success('Preferences saved!');
