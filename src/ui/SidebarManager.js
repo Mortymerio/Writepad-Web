@@ -446,9 +446,16 @@ export const SidebarManager = {
     };
     header.appendChild(closeFolderBtn);
     container.appendChild(header);
+    const openFoldersKey = `writepad_ws_open_${this.workspaceHandle.name}`;
+    let openFolders = new Set(JSON.parse(localStorage.getItem(openFoldersKey) || '[]'));
     
-    const buildTree = async (handle, parentEl) => {
+    const saveOpenFolders = () => {
+      localStorage.setItem(openFoldersKey, JSON.stringify([...openFolders]));
+    };
+
+    const buildTree = async (handle, parentEl, currentPath = '') => {
       for await (const entry of handle.values()) {
+        const fullPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
         const item = document.createElement('div');
         item.className = 'tree-item';
         
@@ -496,13 +503,17 @@ export const SidebarManager = {
             if (isOpen) {
               childrenContainer.classList.remove('open');
               item.querySelector('.icon').innerText = '📁';
+              openFolders.delete(fullPath);
+              saveOpenFolders();
             } else {
               childrenContainer.classList.add('open');
               item.querySelector('.icon').innerText = '📂';
+              openFolders.add(fullPath);
+              saveOpenFolders();
               if (childrenContainer.childNodes.length === 0) {
                 item.querySelector('.icon').innerHTML = '<span class="loading-spinner" style="font-size:10px;">⏳</span>';
                 try {
-                  await buildTree(entry, childrenContainer);
+                  await buildTree(entry, childrenContainer, fullPath);
                 } finally {
                   item.querySelector('.icon').innerText = '📂';
                 }
@@ -514,6 +525,17 @@ export const SidebarManager = {
           wrapper.appendChild(item);
           wrapper.appendChild(childrenContainer);
           parentEl.appendChild(wrapper);
+
+          // Restore open state
+          if (openFolders.has(fullPath)) {
+            childrenContainer.classList.add('open');
+            item.querySelector('.icon').innerHTML = '<span class="loading-spinner" style="font-size:10px;">⏳</span>';
+            try {
+              await buildTree(entry, childrenContainer, fullPath);
+            } finally {
+              item.querySelector('.icon').innerText = '📂';
+            }
+          }
         }
       }
     };
