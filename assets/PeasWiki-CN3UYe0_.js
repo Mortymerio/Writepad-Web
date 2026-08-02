@@ -1,4 +1,4 @@
-import{t as e}from"./index-CxjoCIuI.js";var t=`# LinPEAS - Linux Privilege Escalation Awesome Script
+import{t as e}from"./index-JnJM1AcZ.js";var t=`# LinPEAS - Linux Privilege Escalation Awesome Script
 
 LinPEAS es un script extremadamente completo que busca posibles rutas de escalada de privilegios en sistemas Linux/Unix. Busca configuraciones incorrectas, archivos con SUID, contraseñas en texto claro, y vulnerabilidades conocidas.
 
