@@ -628,7 +628,7 @@ safeOnClick('btn-fetch-models', async () => {
   } catch (err) {
     ToastManager.error("Error fetching models: " + err.message);
   }
-};
+});
 
 // Magic Wand Prompt Box
 const aiPromptBox = document.getElementById('ai-prompt-box');
@@ -651,7 +651,7 @@ safeOnClick('btn-ai-prompt-submit', async () => {
   aiPromptInput.value = '';
   
   await executeAIPrompt(editor, () => TabManager.getActiveTab(), prompt, "General Instructions");
-};
+});
 
 aiPromptInput.addEventListener('keydown', async (e) => {
   if (e.key === 'Enter') {
@@ -693,7 +693,7 @@ safeOnClick('btn-macro-play', () => {
       }
     }
   }
-};
+});
 
 // 9. About Modal
 safeOnClick('menu-about', () => {
@@ -763,7 +763,7 @@ safeOnClick('btn-monitor', async () => {
       window.stopMonitoring();
     }
   }, 1000);
-};
+});
 
 safeOnClick('btn-vim-mode', () => {
   const vimStatusEl = document.getElementById('vim-status');
@@ -786,7 +786,7 @@ safeOnClick('btn-vim-mode', () => {
     isVimEnabled = true;
   }
   localStorage.setItem('isVimEnabled', isVimEnabled);
-};
+});
 
 document.getElementById('theme-selector').onchange = async (e) => {
   const theme = e.target.value;
