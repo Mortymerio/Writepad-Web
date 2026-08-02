@@ -304,6 +304,33 @@ body, html {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  min-width: 150px;
+  max-width: 600px;
+}
+
+/* Resize handles between sidebars and editor */
+.sidebar-resize-handle {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  transition: background 0.15s ease;
+  display: none; /* shown via JS when sidebar is open */
+}
+.sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -3px; right: -3px; /* larger invisible hit area */
+}
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle.dragging {
+  background: var(--accent);
+}
+.sidebar-resize-handle-right {
+  order: 1; /* positions correctly for right sidebar */
 }
 
 .sidebar-header {

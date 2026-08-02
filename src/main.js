@@ -475,6 +475,58 @@ document.getElementById('btn-linpeas').onclick = () => SidebarManager.toggleSide
 document.getElementById('btn-winpeas').onclick = () => SidebarManager.toggleSidebar('winpeas');
 document.getElementById('btn-sidebar-close').onclick = () => SidebarManager.toggleSidebar(null);
 
+// ── Sidebar Drag-to-Resize ──────────────────────────────────────────────────
+function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
+  const handle = document.getElementById(handleId);
+  const sidebar = document.getElementById(sidebarId);
+  if (!handle || !sidebar) return;
+
+  // Restore saved width
+  const savedWidth = localStorage.getItem(storageKey);
+  if (savedWidth) sidebar.style.width = savedWidth + 'px';
+
+  // Show handle when sidebar is visible (observe display changes via MutationObserver)
+  new MutationObserver(() => {
+    const visible = sidebar.style.display !== 'none';
+    handle.style.display = visible ? 'block' : 'none';
+  }).observe(sidebar, { attributes: true, attributeFilter: ['style'] });
+
+  let startX, startWidth;
+
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    startX = e.clientX;
+    startWidth = sidebar.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMove = (e) => {
+      const delta = isRight ? (startX - e.clientX) : (e.clientX - startX);
+      const newWidth = Math.min(600, Math.max(150, startWidth + delta));
+      sidebar.style.width = newWidth + 'px';
+      editor.layout(); // re-layout Monaco
+    };
+
+    const onUp = () => {
+      handle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      localStorage.setItem(storageKey, parseInt(sidebar.style.width));
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+setupSidebarResize('sidebar-resize-handle', 'sidebar', 'sidebar-width', false);
+setupSidebarResize('right-sidebar-resize-handle', 'right-sidebar', 'right-sidebar-width', true);
+// ────────────────────────────────────────────────────────────────────────────
+
+
 // AI Modal Listeners
 document.getElementById('menu-ai').onclick = () => {
   document.getElementById('ai-api-key').value = localStorage.getItem('ai-api-key') || '';
