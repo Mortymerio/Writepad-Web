@@ -280,7 +280,8 @@ function initEditor() {
   if (!savedProfile) {
     document.getElementById('profile-landing').style.display = 'flex';
   } else {
-    document.body.className = `profile-${savedProfile}`;
+    document.body.classList.remove('profile-dev', 'profile-sec', 'profile-all');
+    document.body.classList.add(`profile-${savedProfile}`);
     // Set profile indicator in status bar
     const profileEl = document.getElementById('status-profile');
     if (profileEl) {
@@ -293,7 +294,8 @@ function initEditor() {
     card.onclick = () => {
       const profile = card.getAttribute('data-set-profile');
       localStorage.setItem('writepad_profile', profile);
-      document.body.className = `profile-${profile}`;
+      document.body.classList.remove('profile-dev', 'profile-sec', 'profile-all');
+      document.body.classList.add(`profile-${profile}`);
       updateAIProfileContext(profile);
       document.getElementById('profile-landing').style.display = 'none';
       // Update status bar profile indicator
