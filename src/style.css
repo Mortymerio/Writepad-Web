@@ -538,18 +538,6 @@ body, html {
   transition: background-color 0.2s, color 0.2s;
 }
 
-#status-profile {
-  padding: 1px 7px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: var(--accent, #0066cc);
-  color: #fff;
-  margin-right: 8px;
-  opacity: 0.85;
-}
 
 .status-left {
   display: flex;
@@ -815,54 +803,7 @@ body, html {
   background: #2ea043;
 }
 
-/* Profile Logic */
-body.profile-dev [data-profile="sec"] { display: none !important; }
-body.profile-sec [data-profile="dev"] { display: none !important; }
-
-/* Profile Landing Page */
-.landing-overlay {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: var(--bg-primary);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-.landing-title {
-  font-size: 2.5rem;
-  margin-bottom: 30px;
-  color: var(--text-primary);
-}
-.profile-cards {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.profile-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-dark);
-  border-radius: 8px;
-  padding: 30px;
-  width: 250px;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  color: var(--text-primary);
-}
-.profile-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-  border-color: var(--hover-border);
-}
-.profile-card h3 {
-  font-size: 1.5rem;
-  margin-bottom: 15px;
-}
-.profile-card p {
-  opacity: 0.8;
-  font-size: 0.95rem;
-  line-height: 1.4;
+/* Cyber Mode Logic */
+body:not(.cyber-mode) [data-profile="sec"] {
+  display: none !important;
 }

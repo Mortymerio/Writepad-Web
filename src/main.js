@@ -3,7 +3,7 @@ import * as monaco from 'monaco-editor';
 import { initVimMode } from '../node_modules/monaco-vim/dist/index.mjs';
 import { PluginManager } from './PluginManager.js';
 import { AIService } from './aiService.js';
-import { registerAIContextMenus, executeAIPrompt, updateAIProfileContext } from './aiCopilot.js';
+import { registerAIContextMenus, executeAIPrompt, updateAICyberModeContext } from './aiCopilot.js';
 import { SidebarManager } from './ui/SidebarManager.js';
 import { MenuManager } from './ui/MenuManager.js';
 import { TabManager } from './core/TabManager.js';
@@ -275,45 +275,12 @@ function initEditor() {
     }
   });
 
-  // Profile Selection Logic
-  const savedProfile = localStorage.getItem('writepad_profile');
-  if (!savedProfile) {
-    document.getElementById('profile-landing').style.display = 'flex';
-  } else {
-    document.body.classList.remove('profile-dev', 'profile-sec', 'profile-all');
-    document.body.classList.add(`profile-${savedProfile}`);
-    // Set profile indicator in status bar
-    const profileEl = document.getElementById('status-profile');
-    if (profileEl) {
-      const profileLabels = { dev: '💻 Dev', sec: '🛡 Sec', all: '🌌 God' };
-      profileEl.textContent = profileLabels[savedProfile] || savedProfile;
-    }
+  // Cyber Mode Initialization
+  const cyberModeEnabled = localStorage.getItem('writepad_cyber_mode') === 'true';
+  if (cyberModeEnabled) {
+    document.body.classList.add('cyber-mode');
   }
-
-  document.querySelectorAll('.profile-card').forEach(card => {
-    card.onclick = () => {
-      const profile = card.getAttribute('data-set-profile');
-      localStorage.setItem('writepad_profile', profile);
-      document.body.classList.remove('profile-dev', 'profile-sec', 'profile-all');
-      document.body.classList.add(`profile-${profile}`);
-      updateAIProfileContext(profile);
-      document.getElementById('profile-landing').style.display = 'none';
-      // Update status bar profile indicator
-      const profileEl = document.getElementById('status-profile');
-      if (profileEl) {
-        const profileLabels = { dev: '💻 Dev', sec: '🛡 Sec', all: '🌌 God' };
-        profileEl.textContent = profileLabels[profile] || profile;
-      }
-    };
-  });
-
-  const changeProfileBtn = document.getElementById('menu-change-profile');
-  if (changeProfileBtn) {
-    changeProfileBtn.onclick = () => {
-      document.getElementById('profile-landing').style.display = 'flex';
-      MenuManager.closeAllDropdowns();
-    };
-  }
+  updateAICyberModeContext(cyberModeEnabled);
 
   TabManager.init({
     getEditor: () => editor,
@@ -577,6 +544,29 @@ const safeOnClick = (id, handler) => {
   const el = document.getElementById(id);
   if (el) el.onclick = handler;
 };
+
+// Preferences Modal Listeners
+safeOnClick('menu-settings-preferences', () => {
+  document.getElementById('pref-cyber-mode').checked = localStorage.getItem('writepad_cyber_mode') === 'true';
+  document.getElementById('preferences-modal').style.display = 'flex';
+});
+
+safeOnClick('btn-close-preferences', () => {
+  document.getElementById('preferences-modal').style.display = 'none';
+});
+
+safeOnClick('btn-save-preferences', () => {
+  const isCyberEnabled = document.getElementById('pref-cyber-mode').checked;
+  localStorage.setItem('writepad_cyber_mode', isCyberEnabled);
+  if (isCyberEnabled) {
+    document.body.classList.add('cyber-mode');
+  } else {
+    document.body.classList.remove('cyber-mode');
+  }
+  updateAICyberModeContext(isCyberEnabled);
+  document.getElementById('preferences-modal').style.display = 'none';
+  ToastManager.success('Preferences saved!');
+});
 
 // AI Modal Listeners
 safeOnClick('menu-ai', () => {

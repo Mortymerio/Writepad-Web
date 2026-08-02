@@ -6,10 +6,10 @@ import { ToastManager } from './ui/ToastManager.js';
 let aiDecorations = [];
 let aiContentWidget = null;
 
-let profileContextKey = null;
+let cyberModeContextKey = null;
 
 export function registerAIContextMenus(editor, getActiveTab) {
-  profileContextKey = editor.createContextKey('writepadProfile', localStorage.getItem('writepad_profile') || 'all');
+  cyberModeContextKey = editor.createContextKey('writepadCyberMode', localStorage.getItem('writepad_cyber_mode') === 'true');
 
   const actions = [
     { id: 'ai-explain', label: 'AI: Explain Code ✨', profile: 'dev', prompt: 'Explica paso a paso el funcionamiento del siguiente código.', isExplain: true },
@@ -22,10 +22,8 @@ export function registerAIContextMenus(editor, getActiveTab) {
 
   actions.forEach(act => {
     let precondition = undefined;
-    if (act.profile === 'dev') {
-      precondition = "writepadProfile == 'dev' || writepadProfile == 'all'";
-    } else if (act.profile === 'sec') {
-      precondition = "writepadProfile == 'sec' || writepadProfile == 'all'";
+    if (act.profile === 'sec') {
+      precondition = "writepadCyberMode == true";
     }
 
     editor.addAction({
@@ -39,9 +37,9 @@ export function registerAIContextMenus(editor, getActiveTab) {
   });
 }
 
-export function updateAIProfileContext(profile) {
-  if (profileContextKey) {
-    profileContextKey.set(profile);
+export function updateAICyberModeContext(isEnabled) {
+  if (cyberModeContextKey) {
+    cyberModeContextKey.set(isEnabled);
   }
 }
 
