@@ -362,6 +362,10 @@ function updateStatusBar() {
       document.getElementById('status-encoding').innerText = 'UTF-8';
       import('./ui/MenuManager.js').then(m => m.MenuManager.updateEncodingChecks('UTF-8'));
     }
+    
+    if (model) {
+      document.getElementById('status-lang').innerText = model.getLanguageId();
+    }
   }
 
 let isWordWrap = localStorage.getItem('isWordWrap') === 'true';
