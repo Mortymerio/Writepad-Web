@@ -86,7 +86,7 @@ export const ToolbarManager = {
     document.getElementById('btn-minimap').onclick = toggleMinimap;
 
     // Run
-    document.getElementById('btn-run-code').onclick = () => {
+    document.getElementById('btn-run').onclick = () => {
       import('./ToastManager.js').then(m => m.ToastManager.info("⚡ Writepad Web: Configura un entorno de ejecución mediante plugins para correr el código."));
     };
 
