@@ -491,20 +491,25 @@ function toggleMinimap() {
 }
 
 // 7. Sidebars (New)
-document.getElementById('btn-doc-list').onclick = () => SidebarManager.toggleSidebar('doc');
-document.getElementById('btn-func-list').onclick = () => SidebarManager.toggleSidebar('func');
-document.getElementById('btn-workspace').onclick = () => SidebarManager.toggleSidebar('workspace');
-document.getElementById('btn-macros-list').onclick = () => SidebarManager.toggleSidebar('macros');
-document.getElementById('btn-encoder').onclick = () => SidebarManager.toggleSidebar('encoder');
-document.getElementById('btn-hashcat').onclick = () => SidebarManager.toggleSidebar('hashcat');
-document.getElementById('btn-lfi').onclick = () => SidebarManager.toggleSidebar('lfi');
-document.getElementById('btn-xss').onclick = () => SidebarManager.toggleSidebar('xss');
-document.getElementById('btn-gtfobins').onclick = () => SidebarManager.toggleSidebar('gtfobins');
-document.getElementById('btn-revshell').onclick = () => SidebarManager.toggleSidebar('revshell');
-document.getElementById('btn-sqli').onclick = () => SidebarManager.toggleSidebar('sqli');
-document.getElementById('btn-linpeas').onclick = () => SidebarManager.toggleSidebar('linpeas');
-document.getElementById('btn-winpeas').onclick = () => SidebarManager.toggleSidebar('winpeas');
-document.getElementById('btn-sidebar-close').onclick = () => SidebarManager.toggleSidebar(null);
+const bindSidebarBtn = (id, panel) => {
+  const el = document.getElementById(id);
+  if (el) el.onclick = () => SidebarManager.toggleSidebar(panel);
+};
+
+bindSidebarBtn('btn-doc-list', 'doc');
+bindSidebarBtn('btn-func-list', 'func');
+bindSidebarBtn('btn-workspace', 'workspace');
+bindSidebarBtn('btn-macros-list', 'macros');
+bindSidebarBtn('btn-encoder', 'encoder');
+bindSidebarBtn('btn-hashcat', 'hashcat');
+bindSidebarBtn('btn-lfi', 'lfi');
+bindSidebarBtn('btn-xss', 'xss');
+bindSidebarBtn('btn-gtfobins', 'gtfobins');
+bindSidebarBtn('btn-revshell', 'revshell');
+bindSidebarBtn('btn-sqli', 'sqli');
+bindSidebarBtn('btn-linpeas', 'linpeas');
+bindSidebarBtn('btn-winpeas', 'winpeas');
+bindSidebarBtn('btn-sidebar-close', null);
 
 // ── Sidebar Drag-to-Resize ──────────────────────────────────────────────────
 function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {

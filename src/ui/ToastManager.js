@@ -88,6 +88,20 @@ export const ToastManager = {
     toast.appendChild(iconEl);
     toast.appendChild(msgEl);
     toast.appendChild(closeEl);
+    if (type === 'error') {
+      toast.style.cursor = 'pointer';
+      toast.title = 'Clic para copiar el error';
+      toast.onclick = async (e) => {
+        if (e.target === closeEl) return;
+        try {
+          await navigator.clipboard.writeText(message);
+          this.success("Error copiado", 2000);
+        } catch(err) {
+          console.error("No se pudo copiar", err);
+        }
+      };
+    }
+
     container.appendChild(toast);
 
     // Animate in
@@ -110,7 +124,7 @@ export const ToastManager = {
   },
 
   success(msg, duration) { return this.show(msg, 'success', duration); },
-  error(msg, duration)   { return this.show(msg, 'error', duration); },
+  error(msg, duration = 10000)   { return this.show(msg, 'error', duration); },
   warning(msg, duration) { return this.show(msg, 'warning', duration); },
   info(msg, duration)    { return this.show(msg, 'info', duration); },
 };
