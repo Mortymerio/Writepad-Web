@@ -581,16 +581,7 @@ body, html {
   border-right: none;
 }
 
-/* Monaco specific overrides to look more basic */
-.monaco-editor .margin {
-  background-color: var(--editor-margin-bg) !important;
-}
 
-body:not([data-theme="github-dark"]) .monaco-editor,
-body:not([data-theme="github-dark"]) .monaco-editor-background,
-body:not([data-theme="github-dark"]) .monaco-editor .inputarea.ime-input {
-  background-color: var(--bg-editor) !important;
-}
 
 /* Change History Gutter Margins */
 .gutter-unsaved {

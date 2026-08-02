@@ -13,6 +13,7 @@ import { ToolsManager } from './core/ToolsManager.js';
 import { CyberTools } from './core/CyberTools.js';
 import { createIcons, icons } from 'lucide';
 import { ToastManager } from './ui/ToastManager.js';
+window.ToastManager = ToastManager;
 
 self.MonacoEnvironment = {
   getWorker(workerId, label) {
@@ -791,7 +792,7 @@ document.getElementById('theme-selector').onchange = async (e) => {
   }
   
   // Pre-loaded themes
-  if (theme === 'vs' || theme === 'github-dark') {
+  if (['vs', 'vs-dark', 'hc-black', 'github-dark'].includes(theme)) {
     monaco.editor.setTheme(theme);
     return;
   }
