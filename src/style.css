@@ -18,7 +18,7 @@
   --tab-bg-active: #ddeeff;
 }
 
-[data-theme="github-dark"] {
+body.dark-mode {
   --bg-primary: #0d1117;
   --bg-secondary: #010409;
   --bg-active: #0d1117;

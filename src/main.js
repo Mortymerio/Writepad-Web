@@ -784,8 +784,10 @@ document.getElementById('theme-selector').onchange = async (e) => {
   // Set data-theme attribute for CSS theme variables
   if (isDark) {
     document.body.setAttribute('data-theme', theme);
+    document.body.classList.add('dark-mode');
   } else {
     document.body.removeAttribute('data-theme');
+    document.body.classList.remove('dark-mode');
   }
   
   // Pre-loaded themes
