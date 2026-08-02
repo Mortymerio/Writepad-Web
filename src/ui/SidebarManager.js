@@ -383,12 +383,12 @@ export const SidebarManager = {
     
     // Add a header showing the open folder with a close button
     const header = document.createElement('div');
-    header.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:var(--bg-secondary); border-bottom:1px solid var(--border-dark); font-size:12px;';
+    header.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:var(--bg-secondary); border-bottom:1px solid var(--border-dark); font-size:12px; color:var(--text-primary);';
     header.innerHTML = `<span title="${this.workspaceHandle.name}">📁 <strong>${this.workspaceHandle.name}</strong></span>`;
     const closeFolderBtn = document.createElement('button');
     closeFolderBtn.innerText = '✕';
     closeFolderBtn.title = 'Close Folder';
-    closeFolderBtn.style.cssText = 'background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:14px;';
+    closeFolderBtn.style.cssText = 'background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:14px; line-height:1;';
     closeFolderBtn.onclick = async () => {
       this.workspaceHandle = null;
       await WorkspaceDB.clear();
