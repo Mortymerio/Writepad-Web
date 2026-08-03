@@ -477,7 +477,7 @@ export const SidebarManager = {
         item.querySelector('.func-name-text').textContent = func.name;
         item.title = `Line ${func.line}`;
         item.onclick = () => {
-          editor.revealLineCenter(func.line);
+          editor.revealLineInCenter(func.line);
           editor.setPosition({ lineNumber: func.line, column: 1 });
           editor.focus();
         };
