@@ -1,5 +1,6 @@
 import * as monaco from 'monaco-editor';
 import { ToastManager } from './ToastManager.js';
+import { RepeaterPanel } from './RepeaterPanel.js';
 
 // IndexedDB helper for storing FileSystemDirectoryHandle
 const WorkspaceDB = {
@@ -78,7 +79,7 @@ export const SidebarManager = {
   toggleSidebar(panelName) {
     const editor = this.callbacks.getEditor();
     
-    if (['restclient', 'md-preview', 'gtfobins', 'revshell', 'sqli', 'linpeas', 'winpeas', 'encoder', 'hashcat', 'regex-tester', 'lfi', 'xss'].includes(panelName)) {
+    if (['restclient', 'md-preview', 'gtfobins', 'revshell', 'sqli', 'linpeas', 'winpeas', 'encoder', 'hashcat', 'regex-tester', 'lfi', 'xss', 'repeater'].includes(panelName)) {
       const rightSidebar = document.getElementById('right-sidebar');
       const rightTitle = document.getElementById('right-sidebar-title');
       
@@ -101,6 +102,7 @@ export const SidebarManager = {
         if (panelName === 'regex-tester') rightTitle.innerText = 'Regex Tester';
         if (panelName === 'lfi') rightTitle.innerText = 'LFI / Traversal Wiki';
         if (panelName === 'xss') rightTitle.innerText = 'XSS Polyglot Generator';
+        if (panelName === 'repeater') rightTitle.innerText = 'HTTP Repeater';
         
         const rightContent = document.getElementById('right-sidebar-content');
         rightContent.innerHTML = '';
@@ -117,6 +119,7 @@ export const SidebarManager = {
         if (panelName === 'regex-tester') this.renderSidebarRegexTester(rightContent);
         if (panelName === 'lfi') this.renderSidebarLFI(rightContent);
         if (panelName === 'xss') this.renderSidebarXSS(rightContent);
+        if (panelName === 'repeater') this.renderSidebarRepeater(rightContent);
       }
       this.updateButtonStates();
       if (editor) setTimeout(() => editor.layout(), 10);
@@ -152,7 +155,7 @@ export const SidebarManager = {
 
   updateButtonStates() {
     const leftMap = { 'doc': 'btn-doc-list', 'func': 'btn-func-list', 'workspace': 'btn-workspace', 'todo': 'btn-todo-tree', 'macros': 'btn-macros-list' };
-    const rightMap = { 'restclient': 'btn-restclient', 'md-preview': 'btn-md-preview', 'gtfobins': 'btn-gtfobins', 'revshell': 'btn-revshell', 'sqli': 'btn-sqli', 'linpeas': 'btn-linpeas', 'winpeas': 'btn-winpeas', 'encoder': 'btn-encoder', 'hashcat': 'btn-hashcat', 'regex-tester': 'btn-regex-tester', 'lfi': 'btn-lfi', 'xss': 'btn-xss' };
+    const rightMap = { 'restclient': 'btn-restclient', 'md-preview': 'btn-md-preview', 'gtfobins': 'btn-gtfobins', 'revshell': 'btn-revshell', 'sqli': 'btn-sqli', 'linpeas': 'btn-linpeas', 'winpeas': 'btn-winpeas', 'encoder': 'btn-encoder', 'hashcat': 'btn-hashcat', 'regex-tester': 'btn-regex-tester', 'lfi': 'btn-lfi', 'xss': 'btn-xss', 'repeater': 'btn-repeater' };
     
     Object.keys(leftMap).forEach(key => {
       const btn = document.getElementById(leftMap[key]);
@@ -179,6 +182,19 @@ export const SidebarManager = {
       await this.renderSidebarWorkspace(content);
     } else if (this.activeSidebar === 'macros') {
       this.renderSidebarMacros(content);
+    }
+  },
+
+  renderSidebarRepeater(container) {
+    if (!window.RepeaterPanel) {
+      import('./RepeaterPanel.js').then(({ RepeaterPanel }) => {
+        window.RepeaterPanel = RepeaterPanel;
+        RepeaterPanel.init(this.callbacks);
+        RepeaterPanel.renderSidebar(container);
+      });
+    } else {
+      window.RepeaterPanel.init(this.callbacks);
+      window.RepeaterPanel.renderSidebar(container);
     }
   },
 

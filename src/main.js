@@ -615,6 +615,7 @@ bindSidebarBtn('btn-workspace', 'workspace');
 bindSidebarBtn('btn-todo-tree', 'todo');
 bindSidebarBtn('btn-macros-list', 'macros');
 bindSidebarBtn('btn-restclient', 'restclient');
+bindSidebarBtn('btn-repeater', 'repeater');
 bindSidebarBtn('btn-md-preview', 'md-preview');
 bindSidebarBtn('btn-encoder', 'encoder');
 bindSidebarBtn('btn-hashcat', 'hashcat');
