@@ -1,0 +1,17 @@
+var e={callbacks:{},container:null,disposable:null,init(e){this.callbacks=e},renderSidebar(e){this.container=e,e.innerHTML=`
+      <div style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+        <div style="padding: 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-light); font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+          <span>TODO Tree</span>
+          <button id="btn-refresh-todo" style="background: none; border: none; cursor: pointer; color: var(--text-primary);"><i data-lucide="refresh-cw" width="14" height="14"></i></button>
+        </div>
+        <div id="todo-list-content" style="flex: 1; padding: 10px; overflow-y: auto; line-height: 1.6; font-size: 0.9em;">
+        </div>
+      </div>
+    `,window.lucide&&window.lucide.createIcons(),document.getElementById(`btn-refresh-todo`).onclick=()=>this.updateTree(),this.updateTree();let t=this.callbacks.getEditor();this.disposable&&this.disposable.dispose();let n;this.disposable=t.onDidChangeModelContent(()=>{clearTimeout(n),n=setTimeout(()=>{this.container&&this.container.isConnected&&this.updateTree()},1e3)})},updateTree(){if(!this.container||!document.getElementById(`todo-list-content`))return;let e=this.callbacks.getEditor(),t=document.getElementById(`todo-list-content`);if(this.callbacks.getActiveTabIndex()===-1){t.innerHTML=`<i style="color: var(--text-secondary);">No active document.</i>`;return}let n=e.getValue().split(`
+`),r=[{regex:/\b(TODO):?(.*)/i,color:`#e3b341`,name:`TODO`},{regex:/\b(FIXME):?(.*)/i,color:`#f85149`,name:`FIXME`},{regex:/\b(BUG):?(.*)/i,color:`#f85149`,name:`BUG`},{regex:/\b(HACK):?(.*)/i,color:`#d2a8ff`,name:`HACK`},{regex:/\b(NOTE):?(.*)/i,color:`#58a6ff`,name:`NOTE`},{regex:/(\[\s\])\s(.*)/i,color:`#e3b341`,name:`[ ]`},{regex:/(\[x\])\s(.*)/i,color:`#89d185`,name:`[X]`}],i=[];if(n.forEach((e,t)=>{for(let n of r){let r=e.match(n.regex);if(r){let e=r[1].toUpperCase();if(n.name===e){i.push({line:t+1,keyword:e,text:r[2].trim()||`(no description)`,color:n.color});break}}}}),i.length===0){t.innerHTML=`<i style="color: var(--text-secondary);">No TODOs found.</i>`;return}let a=`<ul style="list-style: none; padding: 0; margin: 0;">`;i.forEach(e=>{a+=`
+        <li class="todo-item" data-line="${e.line}" style="margin-bottom: 8px; cursor: pointer; padding: 4px; border-radius: 4px; border: 1px solid transparent;" onmouseover="this.style.background='var(--bg-active)'; this.style.borderColor='var(--border-light)';" onmouseout="this.style.background='transparent'; this.style.borderColor='transparent';">
+          <span style="color: ${e.color}; font-weight: bold; font-size: 0.85em; background: ${e.color}22; padding: 2px 4px; border-radius: 3px;">${e.keyword}</span>
+          <span style="color: var(--text-secondary); margin-left: 5px; font-size: 0.85em;">Ln ${e.line}</span>
+          <div style="margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary);">${e.text}</div>
+        </li>
+      `}),a+=`</ul>`,t.innerHTML=a,t.querySelectorAll(`.todo-item`).forEach(t=>{t.onclick=()=>{let n=parseInt(t.getAttribute(`data-line`),10);e.revealLineInCenter(n),e.setPosition({lineNumber:n,column:1}),e.focus()}})}};export{e as TodoTreePanel};
