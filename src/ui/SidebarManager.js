@@ -78,7 +78,7 @@ export const SidebarManager = {
   toggleSidebar(panelName) {
     const editor = this.callbacks.getEditor();
     
-    if (['gtfobins', 'revshell', 'sqli', 'linpeas', 'winpeas', 'encoder', 'hashcat', 'lfi', 'xss'].includes(panelName)) {
+    if (['restclient', 'md-preview', 'gtfobins', 'revshell', 'sqli', 'linpeas', 'winpeas', 'encoder', 'hashcat', 'regex-tester', 'lfi', 'xss'].includes(panelName)) {
       const rightSidebar = document.getElementById('right-sidebar');
       const rightTitle = document.getElementById('right-sidebar-title');
       
@@ -89,6 +89,8 @@ export const SidebarManager = {
         rightSidebar.style.display = 'flex';
         this.activeRightSidebar = panelName;
         
+        if (panelName === 'restclient') rightTitle.innerText = 'REST API Client';
+        if (panelName === 'md-preview') rightTitle.innerText = 'Markdown Preview';
         if (panelName === 'gtfobins') rightTitle.innerText = 'GTFOBins Wiki';
         if (panelName === 'revshell') rightTitle.innerText = 'Reverse Shell Generator';
         if (panelName === 'sqli') rightTitle.innerText = 'SQLi Cheat Sheet';
@@ -96,12 +98,15 @@ export const SidebarManager = {
         if (panelName === 'winpeas') rightTitle.innerText = 'WinPEAS Guide';
         if (panelName === 'encoder') rightTitle.innerText = 'Encoder / Decoder';
         if (panelName === 'hashcat') rightTitle.innerText = 'Hash Identifier & Cracker';
+        if (panelName === 'regex-tester') rightTitle.innerText = 'Regex Tester';
         if (panelName === 'lfi') rightTitle.innerText = 'LFI / Traversal Wiki';
         if (panelName === 'xss') rightTitle.innerText = 'XSS Polyglot Generator';
         
         const rightContent = document.getElementById('right-sidebar-content');
         rightContent.innerHTML = '';
         
+        if (panelName === 'restclient') this.renderSidebarRestClient(rightContent);
+        if (panelName === 'md-preview') this.renderSidebarMdPreview(rightContent);
         if (panelName === 'gtfobins') this.renderSidebarGTFOBins(rightContent);
         if (panelName === 'revshell') this.renderSidebarRevShell(rightContent);
         if (panelName === 'sqli') this.renderSidebarSQLi(rightContent);
@@ -109,9 +114,11 @@ export const SidebarManager = {
         if (panelName === 'winpeas') this.renderSidebarPeas(rightContent, 'winpeas');
         if (panelName === 'encoder') this.renderSidebarEncoder(rightContent);
         if (panelName === 'hashcat') this.renderSidebarHashCracker(rightContent);
+        if (panelName === 'regex-tester') this.renderSidebarRegexTester(rightContent);
         if (panelName === 'lfi') this.renderSidebarLFI(rightContent);
         if (panelName === 'xss') this.renderSidebarXSS(rightContent);
       }
+      this.updateButtonStates();
       if (editor) setTimeout(() => editor.layout(), 10);
       return;
     }
@@ -123,6 +130,7 @@ export const SidebarManager = {
       sidebar.style.display = 'none';
       this.activeSidebar = null;
       localStorage.removeItem('writepad_active_left_sidebar');
+      this.updateButtonStates();
       if (editor) setTimeout(() => editor.layout(), 10);
       return;
     }
@@ -133,11 +141,27 @@ export const SidebarManager = {
     
     if (panelName === 'doc') title.innerText = 'Document List';
     if (panelName === 'func') title.innerText = 'Function List';
+    if (panelName === 'todo') title.innerText = 'TODO Tree';
     if (panelName === 'workspace') title.innerText = 'Workspace';
-    if (panelName === 'macros') title.innerText = 'Saved Macros';
+    if (panelName === 'macros') title.innerText = 'Macros';
     
     this.updateSidebarContent();
+    this.updateButtonStates();
     if (editor) setTimeout(() => editor.layout(), 10);
+  },
+
+  updateButtonStates() {
+    const leftMap = { 'doc': 'btn-doc-list', 'func': 'btn-func-list', 'workspace': 'btn-workspace', 'todo': 'btn-todo-tree', 'macros': 'btn-macros-list' };
+    const rightMap = { 'restclient': 'btn-restclient', 'md-preview': 'btn-md-preview', 'gtfobins': 'btn-gtfobins', 'revshell': 'btn-revshell', 'sqli': 'btn-sqli', 'linpeas': 'btn-linpeas', 'winpeas': 'btn-winpeas', 'encoder': 'btn-encoder', 'hashcat': 'btn-hashcat', 'regex-tester': 'btn-regex-tester', 'lfi': 'btn-lfi', 'xss': 'btn-xss' };
+    
+    Object.keys(leftMap).forEach(key => {
+      const btn = document.getElementById(leftMap[key]);
+      if (btn) btn.classList.toggle('active-btn', this.activeSidebar === key);
+    });
+    Object.keys(rightMap).forEach(key => {
+      const btn = document.getElementById(rightMap[key]);
+      if (btn) btn.classList.toggle('active-btn', this.activeRightSidebar === key);
+    });
   },
 
   async updateSidebarContent() {
@@ -149,10 +173,38 @@ export const SidebarManager = {
       this.renderSidebarDocList(content);
     } else if (this.activeSidebar === 'func') {
       this.renderSidebarFuncList(content);
+    } else if (this.activeSidebar === 'todo') {
+      this.renderSidebarTodo(content);
     } else if (this.activeSidebar === 'workspace') {
       await this.renderSidebarWorkspace(content);
     } else if (this.activeSidebar === 'macros') {
       this.renderSidebarMacros(content);
+    }
+  },
+
+  renderSidebarRestClient(container) {
+    if (!window.RestClientPanel) {
+      import('./RestClientPanel.js').then(({ RestClientPanel }) => {
+        window.RestClientPanel = RestClientPanel;
+        RestClientPanel.init(this.callbacks);
+        RestClientPanel.renderSidebar(container);
+      });
+    } else {
+      window.RestClientPanel.init(this.callbacks);
+      window.RestClientPanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarMdPreview(container) {
+    if (!window.MarkdownPreviewPanel) {
+      import('./MarkdownPreviewPanel.js').then(({ MarkdownPreviewPanel }) => {
+        window.MarkdownPreviewPanel = MarkdownPreviewPanel;
+        MarkdownPreviewPanel.init(this.callbacks);
+        MarkdownPreviewPanel.renderSidebar(container);
+      });
+    } else {
+      window.MarkdownPreviewPanel.init(this.callbacks);
+      window.MarkdownPreviewPanel.renderSidebar(container);
     }
   },
 
@@ -227,6 +279,19 @@ export const SidebarManager = {
     window.HashCrackerPanel.renderSidebar(container);
   },
 
+  renderSidebarRegexTester(container) {
+    if (!window.RegexTesterPanel) {
+      import('./RegexTesterPanel.js').then(({ RegexTesterPanel }) => {
+        window.RegexTesterPanel = RegexTesterPanel;
+        RegexTesterPanel.init(this.callbacks);
+        RegexTesterPanel.renderSidebar(container);
+      });
+    } else {
+      window.RegexTesterPanel.init(this.callbacks);
+      window.RegexTesterPanel.renderSidebar(container);
+    }
+  },
+
   renderSidebarLFI(container) {
     if (!window.LFIWiki) {
       import('./LFIWiki.js').then(({ LFIWiki }) => {
@@ -249,6 +314,19 @@ export const SidebarManager = {
       return;
     }
     window.XSSGenerator.renderSidebar(container);
+  },
+
+  renderSidebarTodo(container) {
+    if (!window.TodoTreePanel) {
+      import('./TodoTreePanel.js').then(({ TodoTreePanel }) => {
+        window.TodoTreePanel = TodoTreePanel;
+        TodoTreePanel.init(this.callbacks);
+        TodoTreePanel.renderSidebar(container);
+      });
+    } else {
+      window.TodoTreePanel.init(this.callbacks);
+      window.TodoTreePanel.renderSidebar(container);
+    }
   },
 
   renderSidebarMacros(container) {

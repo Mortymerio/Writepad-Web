@@ -43,6 +43,10 @@ import { ToolsManager } from './core/ToolsManager.js';
 import { CyberTools } from './core/CyberTools.js';
 import { createIcons, icons } from 'lucide';
 import { ToastManager } from './ui/ToastManager.js';
+import { DiffViewerModal } from './ui/DiffViewerModal.js';
+import { ColorHighlighter } from './core/ColorHighlighter.js';
+import { HelpOverlayModal } from './ui/HelpOverlayModal.js';
+import { VimCheatSheetModal } from './ui/VimCheatSheetModal.js';
 window.ToastManager = ToastManager;
 
 self.MonacoEnvironment = {
@@ -111,6 +115,14 @@ function initEditor() {
     automaticLayout: true,
     renderWhitespace: initialInvState.space ? 'all' : 'none',
     renderControlCharacters: initialInvState.control
+  });
+
+  // Bind Zen Mode toggle inside Monaco Editor
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ, () => {
+    document.body.classList.toggle('zen-mode');
+    const zenMenu = document.getElementById('menu-view-zenmode');
+    if (zenMenu) zenMenu.classList.toggle('checked', document.body.classList.contains('zen-mode'));
+    editor.layout();
   });
 
   editor.onDidChangeCursorPosition((e) => {
@@ -219,7 +231,29 @@ function initEditor() {
       e.preventDefault();
       editor.trigger('keyboard', 'editor.action.quickCommand');
     }
+    // Zen Mode (Ctrl+Shift+Z)
+    if (e.ctrlKey && e.shiftKey && (e.key === 'Z' || e.key === 'z')) {
+      e.preventDefault();
+      document.body.classList.toggle('zen-mode');
+      const zenMenu = document.getElementById('menu-view-zenmode');
+      if (zenMenu) zenMenu.classList.toggle('checked', document.body.classList.contains('zen-mode'));
+      if (typeof editor !== 'undefined' && editor.layout) editor.layout();
+    }
   });
+
+  // Bind Zen Mode Menu Item
+  const zenMenu = document.getElementById('menu-view-zenmode');
+  if (zenMenu) {
+    zenMenu.onclick = (e) => {
+      e.stopPropagation();
+      document.body.classList.toggle('zen-mode');
+      zenMenu.classList.toggle('checked', document.body.classList.contains('zen-mode'));
+      if (typeof editor !== 'undefined' && editor.layout) editor.layout();
+      // Close menus
+      document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
+      document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    };
+  }
 
   window.addEventListener('resize', () => {
     editor.layout();
@@ -336,6 +370,9 @@ function initEditor() {
   // Auto-save workspace every 5 seconds
   setInterval(() => TabManager.saveWorkspace(), 5000);
   window.addEventListener('beforeunload', () => TabManager.saveWorkspace());
+  
+  ColorHighlighter.init();
+
 
   ToolbarManager.init({
     createNewTab: () => TabManager.createNewTab(),
@@ -372,6 +409,76 @@ function initEditor() {
         btnVim.classList.remove('active-btn');
       }
       localStorage.setItem('isVimEnabled', isVimEnabled);
+    }
+  });
+
+  DiffViewerModal.init({
+    getTabs: () => TabManager.getTabs(),
+    getActiveTabIndex: () => TabManager.getActiveTabIndex(),
+    closeAllDropdowns: () => import('./ui/MenuManager.js').then(m => m.MenuManager.closeAllDropdowns())
+  });
+  
+  HelpOverlayModal.init({});
+
+  // ── Bind Missing Top Menu and Toolbar Buttons ──
+  const btnHelp = document.getElementById('btn-help');
+  if (btnHelp) btnHelp.onclick = () => HelpOverlayModal.show();
+  
+  const menuViewCompare = document.getElementById('menu-view-compare');
+  if (menuViewCompare) {
+    menuViewCompare.onclick = () => {
+      import('./ui/MenuManager.js').then(m => m.MenuManager.closeAllDropdowns());
+      DiffViewerModal.showSelectionModal();
+    };
+  }
+
+  const menuEditFormat = document.getElementById('menu-edit-format');
+  if (menuEditFormat) {
+    menuEditFormat.onclick = () => {
+      import('./ui/MenuManager.js').then(m => m.MenuManager.closeAllDropdowns());
+      const formatAction = editor.getAction('editor.action.formatDocument');
+      if (formatAction && formatAction.isSupported()) {
+        formatAction.run();
+      } else {
+        ToastManager.warning('No hay un formateador nativo disponible para este lenguaje.');
+      }
+    };
+  }
+
+  // ── Add Context Menu Actions ──
+  editor.addAction({
+    id: 'writepad-format-code',
+    label: 'Format Code (Prettier)',
+    contextMenuGroupId: '1_modification',
+    contextMenuOrder: 1,
+    run: function(ed) {
+      const act = ed.getAction('editor.action.formatDocument');
+      if (act && act.isSupported()) {
+        act.run();
+      } else {
+        ToastManager.warning('No hay un formateador nativo disponible para este lenguaje.');
+      }
+    }
+  });
+
+  editor.addAction({
+    id: 'writepad-compare-file',
+    label: 'Compare File (Diff Viewer)',
+    contextMenuGroupId: 'navigation',
+    contextMenuOrder: 1.5,
+    run: function(ed) {
+      import('./ui/MenuManager.js').then(m => m.MenuManager.closeAllDropdowns());
+      DiffViewerModal.showSelectionModal();
+    }
+  });
+
+  editor.addAction({
+    id: 'writepad-help',
+    label: 'Show Help Manual',
+    contextMenuGroupId: 'navigation',
+    contextMenuOrder: 2,
+    run: function(ed) {
+      HelpOverlayModal.show();
     }
   });
 }
@@ -505,9 +612,13 @@ const bindSidebarBtn = (id, panel) => {
 bindSidebarBtn('btn-doc-list', 'doc');
 bindSidebarBtn('btn-func-list', 'func');
 bindSidebarBtn('btn-workspace', 'workspace');
+bindSidebarBtn('btn-todo-tree', 'todo');
 bindSidebarBtn('btn-macros-list', 'macros');
+bindSidebarBtn('btn-restclient', 'restclient');
+bindSidebarBtn('btn-md-preview', 'md-preview');
 bindSidebarBtn('btn-encoder', 'encoder');
 bindSidebarBtn('btn-hashcat', 'hashcat');
+bindSidebarBtn('btn-regex-tester', 'regex-tester');
 bindSidebarBtn('btn-lfi', 'lfi');
 bindSidebarBtn('btn-xss', 'xss');
 bindSidebarBtn('btn-gtfobins', 'gtfobins');
@@ -819,6 +930,10 @@ safeOnClick('btn-vim-mode', () => {
     isVimEnabled = true;
   }
   localStorage.setItem('isVimEnabled', isVimEnabled);
+});
+
+safeOnClick('btn-vim-cheat-sheet', () => {
+  VimCheatSheetModal.show();
 });
 
 document.getElementById('theme-selector').onchange = async (e) => {

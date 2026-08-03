@@ -73,6 +73,7 @@ export const MenuManager = {
       'menu-edit-paste': 'btn-paste',
       'menu-edit-undo': 'btn-undo',
       'menu-edit-redo': 'btn-redo',
+      'menu-edit-format': 'btn-format',
       'menu-search-find': 'btn-find',
       'menu-search-replace': 'btn-replace',
       'menu-view-zoomin': 'btn-zoom-in',
@@ -106,6 +107,15 @@ export const MenuManager = {
       paletteBtn.onclick = (e) => {
         e.stopPropagation();
         this.callbacks.getEditor().trigger('keyboard', 'editor.action.quickCommand');
+        this.closeAllDropdowns();
+      };
+    }
+
+    const formatBtn = document.getElementById('menu-edit-format');
+    if (formatBtn) {
+      formatBtn.onclick = (e) => {
+        e.stopPropagation();
+        this.callbacks.getEditor().getAction('editor.action.formatDocument').run();
         this.closeAllDropdowns();
       };
     }
