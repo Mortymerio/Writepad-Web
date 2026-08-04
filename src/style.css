@@ -524,6 +524,7 @@ body, html {
   height: 100%;
   position: relative;
   border-left: 1px solid var(--border-dark);
+  overflow: hidden; /* CRITICAL: Prevent Monaco scrollbar bleeding */
   min-height: 0;
   min-width: 0;
   width: 0;

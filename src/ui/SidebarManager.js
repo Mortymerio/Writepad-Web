@@ -44,13 +44,46 @@ const WorkspaceDB = {
 };
 
 export const SidebarManager = {
+  callbacks: {},
   activeSidebar: null,
   activeRightSidebar: null,
-  workspaceHandle: null,
-  callbacks: {},
+  
+  rightPanels: {},
+
+  registerRightPanel(id, title, renderFn) {
+    this.rightPanels[id] = { title, render: renderFn };
+  },
 
   async init(callbacks) {
     this.callbacks = callbacks;
+    
+    // Core panels
+    this.registerRightPanel('restclient', 'REST API Client', (c) => this.renderSidebarRestClient(c));
+    this.registerRightPanel('md-preview', 'Markdown Preview', (c) => this.renderSidebarMdPreview(c));
+    this.registerRightPanel('gtfobins', 'GTFOBins Wiki', (c) => this.renderSidebarGTFOBins(c));
+    this.registerRightPanel('revshell', 'Reverse Shell Generator', (c) => this.renderSidebarRevShell(c));
+    this.registerRightPanel('sqli', 'SQLi Cheat Sheet', (c) => this.renderSidebarSQLi(c));
+    this.registerRightPanel('linpeas', 'LinPEAS Guide', (c) => this.renderSidebarPeas(c, 'linpeas'));
+    this.registerRightPanel('winpeas', 'WinPEAS Guide', (c) => this.renderSidebarPeas(c, 'winpeas'));
+    this.registerRightPanel('encoder', 'Encoder / Decoder', (c) => this.renderSidebarEncoder(c));
+    this.registerRightPanel('hashcat', 'Hash Identifier & Cracker', (c) => this.renderSidebarHashCracker(c));
+    this.registerRightPanel('regex-tester', 'Regex Tester', (c) => this.renderSidebarRegexTester(c));
+    this.registerRightPanel('lfi', 'LFI / Traversal Wiki', (c) => this.renderSidebarLFI(c));
+    this.registerRightPanel('xss', 'XSS Polyglot Generator', (c) => this.renderSidebarXSS(c));
+    this.registerRightPanel('repeater', 'HTTP Repeater', (c) => this.renderSidebarRepeater(c));
+    
+    // New HTB panels
+    this.registerRightPanel('nmap-parser', 'Nmap Auto-Parser', (c) => this.renderSidebarNmapParser(c));
+    this.registerRightPanel('cmd-builder', 'Command Builder', (c) => this.renderSidebarCmdBuilder(c));
+    this.registerRightPanel('tpl-gen', 'Template Generator', (c) => this.renderSidebarTplGen(c));
+    this.registerRightPanel('tty-stab', 'TTY Stabilizer', (c) => this.renderSidebarTtyStab(c));
+    this.registerRightPanel('recipe', 'Recipe Pipeline', (c) => this.renderSidebarRecipe(c));
+
+    // God-Tier HTB / OSCP Panels
+    this.registerRightPanel('ad-pivot', 'AD & Pivoting Maestro', (c) => this.renderSidebarADPivot(c));
+    this.registerRightPanel('obfuscator', 'Payload Obfuscator', (c) => this.renderSidebarObfuscator(c));
+    this.registerRightPanel('peas-analyzer', 'PEAS Auto-Analyzer', (c) => this.renderSidebarPeasAnalyzer(c));
+
     window.addEventListener('macrosUpdated', () => {
       if (this.activeSidebar === 'macros') {
         this.updateSidebarContent();
@@ -79,47 +112,26 @@ export const SidebarManager = {
   toggleSidebar(panelName) {
     const editor = this.callbacks.getEditor();
     
-    if (['restclient', 'md-preview', 'gtfobins', 'revshell', 'sqli', 'linpeas', 'winpeas', 'encoder', 'hashcat', 'regex-tester', 'lfi', 'xss', 'repeater'].includes(panelName)) {
+    if (this.rightPanels[panelName]) {
       const rightSidebar = document.getElementById('right-sidebar');
       const rightTitle = document.getElementById('right-sidebar-title');
+      const rightResizeHandle = document.getElementById('right-sidebar-resize-handle');
       
       if (this.activeRightSidebar === panelName) {
         rightSidebar.style.display = 'none';
+        if (rightResizeHandle) rightResizeHandle.style.display = 'none';
         this.activeRightSidebar = null;
       } else {
         rightSidebar.style.display = 'flex';
+        if (rightResizeHandle) rightResizeHandle.style.display = 'block';
         this.activeRightSidebar = panelName;
         
-        if (panelName === 'restclient') rightTitle.innerText = 'REST API Client';
-        if (panelName === 'md-preview') rightTitle.innerText = 'Markdown Preview';
-        if (panelName === 'gtfobins') rightTitle.innerText = 'GTFOBins Wiki';
-        if (panelName === 'revshell') rightTitle.innerText = 'Reverse Shell Generator';
-        if (panelName === 'sqli') rightTitle.innerText = 'SQLi Cheat Sheet';
-        if (panelName === 'linpeas') rightTitle.innerText = 'LinPEAS Guide';
-        if (panelName === 'winpeas') rightTitle.innerText = 'WinPEAS Guide';
-        if (panelName === 'encoder') rightTitle.innerText = 'Encoder / Decoder';
-        if (panelName === 'hashcat') rightTitle.innerText = 'Hash Identifier & Cracker';
-        if (panelName === 'regex-tester') rightTitle.innerText = 'Regex Tester';
-        if (panelName === 'lfi') rightTitle.innerText = 'LFI / Traversal Wiki';
-        if (panelName === 'xss') rightTitle.innerText = 'XSS Polyglot Generator';
-        if (panelName === 'repeater') rightTitle.innerText = 'HTTP Repeater';
+        rightTitle.innerText = this.rightPanels[panelName].title;
         
         const rightContent = document.getElementById('right-sidebar-content');
         rightContent.innerHTML = '';
         
-        if (panelName === 'restclient') this.renderSidebarRestClient(rightContent);
-        if (panelName === 'md-preview') this.renderSidebarMdPreview(rightContent);
-        if (panelName === 'gtfobins') this.renderSidebarGTFOBins(rightContent);
-        if (panelName === 'revshell') this.renderSidebarRevShell(rightContent);
-        if (panelName === 'sqli') this.renderSidebarSQLi(rightContent);
-        if (panelName === 'linpeas') this.renderSidebarPeas(rightContent, 'linpeas');
-        if (panelName === 'winpeas') this.renderSidebarPeas(rightContent, 'winpeas');
-        if (panelName === 'encoder') this.renderSidebarEncoder(rightContent);
-        if (panelName === 'hashcat') this.renderSidebarHashCracker(rightContent);
-        if (panelName === 'regex-tester') this.renderSidebarRegexTester(rightContent);
-        if (panelName === 'lfi') this.renderSidebarLFI(rightContent);
-        if (panelName === 'xss') this.renderSidebarXSS(rightContent);
-        if (panelName === 'repeater') this.renderSidebarRepeater(rightContent);
+        this.rightPanels[panelName].render(rightContent);
       }
       this.updateButtonStates();
       if (editor) setTimeout(() => editor.layout(), 10);
@@ -155,7 +167,10 @@ export const SidebarManager = {
 
   updateButtonStates() {
     const leftMap = { 'doc': 'btn-doc-list', 'func': 'btn-func-list', 'workspace': 'btn-workspace', 'todo': 'btn-todo-tree', 'macros': 'btn-macros-list' };
-    const rightMap = { 'restclient': 'btn-restclient', 'md-preview': 'btn-md-preview', 'gtfobins': 'btn-gtfobins', 'revshell': 'btn-revshell', 'sqli': 'btn-sqli', 'linpeas': 'btn-linpeas', 'winpeas': 'btn-winpeas', 'encoder': 'btn-encoder', 'hashcat': 'btn-hashcat', 'regex-tester': 'btn-regex-tester', 'lfi': 'btn-lfi', 'xss': 'btn-xss', 'repeater': 'btn-repeater' };
+    
+    // Automatically extract rightMap from rightPanels keys
+    const rightMap = {};
+    Object.keys(this.rightPanels).forEach(key => rightMap[key] = 'btn-' + key);
     
     Object.keys(leftMap).forEach(key => {
       const btn = document.getElementById(leftMap[key]);
@@ -195,6 +210,110 @@ export const SidebarManager = {
     } else {
       window.RepeaterPanel.init(this.callbacks);
       window.RepeaterPanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarNmapParser(container) {
+    if (!window.NmapParserPanel) {
+      import('./NmapParserPanel.js').then(({ NmapParserPanel }) => {
+        window.NmapParserPanel = NmapParserPanel;
+        NmapParserPanel.init(this.callbacks);
+        NmapParserPanel.renderSidebar(container);
+      });
+    } else {
+      window.NmapParserPanel.init(this.callbacks);
+      window.NmapParserPanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarCmdBuilder(container) {
+    if (!window.CommandBuilderPanel) {
+      import('./CommandBuilderPanel.js').then(({ CommandBuilderPanel }) => {
+        window.CommandBuilderPanel = CommandBuilderPanel;
+        CommandBuilderPanel.init(this.callbacks);
+        CommandBuilderPanel.renderSidebar(container);
+      });
+    } else {
+      window.CommandBuilderPanel.init(this.callbacks);
+      window.CommandBuilderPanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarTplGen(container) {
+    if (!window.TemplateGeneratorPanel) {
+      import('./TemplateGeneratorPanel.js').then(({ TemplateGeneratorPanel }) => {
+        window.TemplateGeneratorPanel = TemplateGeneratorPanel;
+        TemplateGeneratorPanel.init(this.callbacks);
+        TemplateGeneratorPanel.renderSidebar(container);
+      });
+    } else {
+      window.TemplateGeneratorPanel.init(this.callbacks);
+      window.TemplateGeneratorPanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarTtyStab(container) {
+    if (!window.TTYStabilizerPanel) {
+      import('./TTYStabilizerPanel.js').then(({ TTYStabilizerPanel }) => {
+        window.TTYStabilizerPanel = TTYStabilizerPanel;
+        TTYStabilizerPanel.init(this.callbacks);
+        TTYStabilizerPanel.renderSidebar(container);
+      });
+    } else {
+      window.TTYStabilizerPanel.init(this.callbacks);
+      window.TTYStabilizerPanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarRecipe(container) {
+    if (!window.RecipePipelinePanel) {
+      import('./RecipePipelinePanel.js').then(({ RecipePipelinePanel }) => {
+        window.RecipePipelinePanel = RecipePipelinePanel;
+        RecipePipelinePanel.init(this.callbacks);
+        RecipePipelinePanel.renderSidebar(container);
+      });
+    } else {
+      window.RecipePipelinePanel.init(this.callbacks);
+      window.RecipePipelinePanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarADPivot(container) {
+    if (!window.ADPivotPanel) {
+      import('./ADPivotPanel.js').then(({ ADPivotPanel }) => {
+        window.ADPivotPanel = ADPivotPanel;
+        ADPivotPanel.init(this.callbacks);
+        ADPivotPanel.renderSidebar(container);
+      });
+    } else {
+      window.ADPivotPanel.init(this.callbacks);
+      window.ADPivotPanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarObfuscator(container) {
+    if (!window.ObfuscatorPanel) {
+      import('./ObfuscatorPanel.js').then(({ ObfuscatorPanel }) => {
+        window.ObfuscatorPanel = ObfuscatorPanel;
+        ObfuscatorPanel.init(this.callbacks);
+        ObfuscatorPanel.renderSidebar(container);
+      });
+    } else {
+      window.ObfuscatorPanel.init(this.callbacks);
+      window.ObfuscatorPanel.renderSidebar(container);
+    }
+  },
+
+  renderSidebarPeasAnalyzer(container) {
+    if (!window.PeasAnalyzerPanel) {
+      import('./PeasAnalyzerPanel.js').then(({ PeasAnalyzerPanel }) => {
+        window.PeasAnalyzerPanel = PeasAnalyzerPanel;
+        PeasAnalyzerPanel.init(this.callbacks);
+        PeasAnalyzerPanel.renderSidebar(container);
+      });
+    } else {
+      window.PeasAnalyzerPanel.init(this.callbacks);
+      window.PeasAnalyzerPanel.renderSidebar(container);
     }
   },
 
