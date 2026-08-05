@@ -160,11 +160,16 @@ function initEditor() {
     }
   });
   
+  let eolDebounceTimer = null;
   let sidebarDebounceTimer = null;
+
   editor.onDidChangeModelContent((e) => {
     updateStatusBar();
     if (invisiblesState.eol) {
-      updateEolDecorations();
+      if (eolDebounceTimer) cancelAnimationFrame(eolDebounceTimer);
+      eolDebounceTimer = requestAnimationFrame(() => {
+        updateEolDecorations();
+      });
     }
     
     // Change History Tracking
@@ -172,42 +177,53 @@ function initEditor() {
     const tabs = TabManager.getTabs();
     if (activeTabIndex !== -1) {
       const tab = tabs[activeTabIndex];
-      let unsavedRanges = tab.unsavedDecos.map(id => tab.model.getDecorationRange(id)).filter(r => r);
       
-      for (const change of e.changes) {
-         const startLine = change.range.startLineNumber;
-         const linesInserted = change.text.split('\n').length - 1;
-         const endLine = startLine + linesInserted;
-         
-         unsavedRanges.push(new monaco.Range(startLine, 1, endLine, 1));
-      }
+      if (!tab.pendingChanges) tab.pendingChanges = [];
+      tab.pendingChanges.push(...e.changes);
       
-      // Merge ranges
-      unsavedRanges.sort((a, b) => a.startLineNumber - b.startLineNumber);
-      let mergedUnsaved = [];
-      for (let r of unsavedRanges) {
-        if (mergedUnsaved.length === 0) {
-          mergedUnsaved.push(r);
-        } else {
-          let last = mergedUnsaved[mergedUnsaved.length - 1];
-          if (r.startLineNumber <= last.endLineNumber + 1) {
-            let newEnd = Math.max(last.endLineNumber, r.endLineNumber);
-            mergedUnsaved[mergedUnsaved.length - 1] = new monaco.Range(last.startLineNumber, 1, newEnd, 1);
-          } else {
+      if (tab.decorationDebounceTimer) cancelAnimationFrame(tab.decorationDebounceTimer);
+      tab.decorationDebounceTimer = requestAnimationFrame(() => {
+        if (tab.model.isDisposed()) return;
+        
+        let unsavedRanges = tab.unsavedDecos.map(id => tab.model.getDecorationRange(id)).filter(r => r);
+        for (const change of tab.pendingChanges) {
+           const startLine = change.range.startLineNumber;
+           const linesInserted = change.text.split('\n').length - 1;
+           const endLine = startLine + linesInserted;
+           unsavedRanges.push(new monaco.Range(startLine, 1, endLine, 1));
+        }
+        tab.pendingChanges = [];
+        
+        // Merge ranges
+        unsavedRanges.sort((a, b) => a.startLineNumber - b.startLineNumber);
+        let mergedUnsaved = [];
+        for (let r of unsavedRanges) {
+          if (mergedUnsaved.length === 0) {
             mergedUnsaved.push(r);
+          } else {
+            let last = mergedUnsaved[mergedUnsaved.length - 1];
+            if (r.startLineNumber <= last.endLineNumber + 1) {
+              let newEnd = Math.max(last.endLineNumber, r.endLineNumber);
+              mergedUnsaved[mergedUnsaved.length - 1] = new monaco.Range(last.startLineNumber, 1, newEnd, 1);
+            } else {
+              mergedUnsaved.push(r);
+            }
           }
         }
-      }
-      
-      tab.unsavedDecos = tab.model.deltaDecorations(tab.unsavedDecos, mergedUnsaved.map(r => ({
-         range: r,
-         options: { isWholeLine: true, linesDecorationsClassName: 'gutter-unsaved' }
-      })));
-      // Refresh tab to show ● dirty indicator
-      if (tab.unsavedDecos.length > 0) TabManager.renderTabs();
+        
+        tab.unsavedDecos = tab.model.deltaDecorations(tab.unsavedDecos, mergedUnsaved.map(r => ({
+           range: r,
+           options: { isWholeLine: true, linesDecorationsClassName: 'gutter-unsaved' }
+        })));
+        // Refresh tab to show ● dirty indicator
+        if (tab.unsavedDecos.length > 0) TabManager.renderTabs();
+      });
     }
 
-    
+    // Auto-save on idle (1 second after typing stops)
+    if (window._autoSaveTimer) clearTimeout(window._autoSaveTimer);
+    window._autoSaveTimer = setTimeout(() => TabManager.saveWorkspace(), 1000);
+
     if (SidebarManager.activeSidebar === 'func') {
       clearTimeout(sidebarDebounceTimer);
       sidebarDebounceTimer = setTimeout(() => {
