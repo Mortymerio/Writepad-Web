@@ -1,4 +1,4 @@
-﻿export const PublishAgentModal = {
+export const PublishAgentModal = {
   show(agent, onSubmit) {
     let modal = document.getElementById('publish-agent-modal');
     if (!modal) {
@@ -14,7 +14,7 @@
           </div>
           <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
             <div>
-              <div style="margin-bottom: 8px; font-weight: bold; color: #c9d1d9;">Agente a publicar: <span style="color: #3fb950;">${agent.name}</span></div>
+              <div style="margin-bottom: 8px; font-weight: bold; color: #c9d1d9;">Agente a publicar: <span id="publish-agent-name-display" style="color: #3fb950;"></span></div>
               <div style="font-size: 0.85em; color: #8b949e;">Comparte tu agente con el resto del equipo. Escribe una descripción clara para que sepan de qué es capaz.</div>
             </div>
             
@@ -37,11 +37,11 @@
       modal.onclick = (e) => { if (e.target === modal) close(); };
     }
     
+    document.getElementById('publish-agent-name-display').innerText = agent.name;
     const input = document.getElementById('publish-agent-desc');
     input.value = agent.description || "";
     
     const confirmBtn = document.getElementById('btn-confirm-publish');
-    // Clear old listeners
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     
@@ -55,4 +55,3 @@
     setTimeout(() => input.focus(), 100);
   }
 };
-
