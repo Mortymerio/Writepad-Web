@@ -84,6 +84,9 @@ export const SidebarManager = {
     this.registerRightPanel('obfuscator', 'Payload Obfuscator', (c) => this.renderSidebarObfuscator(c));
     this.registerRightPanel('peas-analyzer', 'PEAS Auto-Analyzer', (c) => this.renderSidebarPeasAnalyzer(c));
 
+    // AI Agents
+    this.registerRightPanel('agents', 'AI Agents', (c) => this.renderSidebarAgents(c));
+
     window.addEventListener('macrosUpdated', () => {
       if (this.activeSidebar === 'macros') {
         this.updateSidebarContent();
@@ -782,5 +785,13 @@ export const SidebarManager = {
     } catch (e) {
       console.warn('Could not restore workspace handle', e);
     }
+  },
+
+  async renderSidebarAgents(container) {
+    const { AgentPanel } = await import('./AgentPanel.js');
+    if (!this._agentPanelInstance) {
+      this._agentPanelInstance = new AgentPanel(this.callbacks);
+    }
+    this._agentPanelInstance.render(container);
   }
 };

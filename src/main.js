@@ -652,6 +652,7 @@ bindSidebarBtn('btn-sqli', 'sqli');
 bindSidebarBtn('btn-linpeas', 'linpeas');
 bindSidebarBtn('btn-winpeas', 'winpeas');
 bindSidebarBtn('btn-sidebar-close', null);
+bindSidebarBtn('btn-agents', 'agents');
 
 // ── Sidebar Drag-to-Resize ──────────────────────────────────────────────────
 function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
