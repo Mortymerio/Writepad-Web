@@ -1,4 +1,4 @@
-﻿name: Auto Approve Agent
+name: Auto Approve Agent
 
 on:
   issues:
@@ -38,8 +38,11 @@ jobs:
             }
             
             const issueNumber = context.issue.number;
+            const issueAuthor = context.payload.issue.user.login;
+            
             newAgent.id = "hub_auto_" + Date.now();
             newAgent.issue_number = issueNumber;
+            newAgent.author = issueAuthor;
             
             const registryPath = "public/agents_registry.json";
             let registry = [];

@@ -18,7 +18,11 @@ export const CommunityHub = {
 
   publishAgent(agent, description) {
     const title = encodeURIComponent("[Agent Submission]: " + agent.name);
-    const exportAgent = { ...agent };
+    const exportAgent = { 
+      ...agent,
+      description: description || "Sin descripción",
+      author: "GitHub User" // Se sobreescribirá en el Action
+    };
     delete exportAgent.id;
     
     const body = encodeURIComponent(
