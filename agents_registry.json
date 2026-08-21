@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "id": "hub_architect_001",
     "name": "Vibecoder Architect",
@@ -22,5 +22,26 @@
     "tools": ["read_current_tab", "inject_to_editor"],
     "autonomy": "ask",
     "issue_number": null
+  },
+  {
+    "id": "hub_architect_003",
+    "name": "Vibecoder Architect",
+    "author": "Mortymerio",
+    "description": "este agente es la hostia",
+    "systemPrompt": "You are an expert software architect and project planner specializing in the \"vibecoding\" workflow. \n\nCRITICAL INSTRUCTIONS:\n1. Think deeply about the architectural patterns required.\n2. Output specific plans.",
+    "initialPrompt": "Lee el documento actual y genera los 4 archivos de vibecoding.",
+    "model": "gemini-flash-lite-latest",
+    "tools": [
+      "read_file",
+      "write_file",
+      "edit_file",
+      "create_document",
+      "read_current_tab",
+      "inject_to_editor",
+      "list_directory",
+      "invoke_agent"
+    ],
+    "autonomy": "full-auto",
+    "issue_number": 1
   }
 ]

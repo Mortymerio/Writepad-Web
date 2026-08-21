@@ -1,4 +1,4 @@
-import{r as e}from"./index-BCDVt3Gd.js";var t={callbacks:{},container:null,disposable:null,init(e){this.callbacks=e},renderSidebar(e){this.container=e,e.innerHTML=`
+import{r as e}from"./index-DyLEP9nV.js";var t={callbacks:{},container:null,disposable:null,init(e){this.callbacks=e},renderSidebar(e){this.container=e,e.innerHTML=`
       <div style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary);">
         <div style="padding: 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-light); font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
           <span>Markdown Preview</span>
