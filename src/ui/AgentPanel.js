@@ -151,13 +151,13 @@ export class AgentPanel {
         btnPublish.style.cssText = 'padding:2px 8px; font-size:0.8em; background:transparent; border:1px solid #555; color:#3fb950; border-radius:4px; cursor:pointer; flex-shrink:0; margin-left:4px; margin-right:4px;';
         btnPublish.onclick = async (e) => {
           e.stopPropagation();
-          const desc = prompt("Describe brevemente para qué sirve tu agente:", agent.description || "");
-          if (desc !== null) {
+          const { PublishAgentModal } = await import('../ui/PublishAgentModal.js');
+          PublishAgentModal.show(agent, async (desc) => {
             const { CommunityHub } = await import('../ui/CommunityHub.js');
             CommunityHub.publishAgent(agent, desc);
             const { ToastManager } = await import('../ui/ToastManager.js');
             ToastManager.success('Agente publicado en el Hub local exitosamente.');
-          }
+          });
         };
 
         const btnEdit = document.createElement('button');
