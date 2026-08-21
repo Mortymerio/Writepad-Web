@@ -24,7 +24,7 @@ export class AgentPanel {
     this.updateView();
   }
 
-  updateView() {
+  async updateView() {
     this.container.innerHTML = '';
     this.container.style.display = 'flex';
     this.container.style.flexDirection = 'column';
@@ -39,22 +39,59 @@ export class AgentPanel {
     const titleText = document.createElement('div');
     titleText.innerHTML = `🤖 <span>Agents (v2)</span>`;
     
+    const btnCommunity = document.createElement('button');
+    btnCommunity.innerHTML = this.viewMode === 'community' ? '🏠 Local' : '🌐 Hub';
+    btnCommunity.title = 'Community Hub';
+    btnCommunity.style.cssText = 'background:transparent; border:1px solid #444; color:#3fb950; border-radius:4px; padding:2px 8px; cursor:pointer; margin-left:auto; font-size:0.85em; font-weight:normal; display:flex; align-items:center; gap:4px; transition: 0.2s;';
+    btnCommunity.onclick = async () => {
+      if (this.viewMode !== 'community') {
+        const accepted = localStorage.getItem('community_disclaimer_accepted');
+        if (!accepted) {
+          const { CommunityDisclaimerModal } = await import('../ui/CommunityDisclaimerModal.js');
+          CommunityDisclaimerModal.show(() => {
+            this.viewMode = 'community';
+            this.updateView();
+          });
+          return;
+        }
+        this.viewMode = 'community';
+      } else {
+        this.viewMode = 'local';
+      }
+      this.updateView();
+    };
+
     const btnHelp = document.createElement('button');
     btnHelp.innerHTML = '📖 Guía';
     btnHelp.title = 'Guía de Agent-Fu y Ejemplos';
-    btnHelp.style.cssText = 'background:transparent; border:1px solid #444; color:#58a6ff; border-radius:4px; padding:2px 8px; cursor:pointer; margin-left:auto; font-size:0.85em; font-weight:normal; display:flex; align-items:center; gap:4px;';
+    btnHelp.style.cssText = 'background:transparent; border:1px solid #444; color:#58a6ff; border-radius:4px; padding:2px 8px; cursor:pointer; margin-left:4px; font-size:0.85em; font-weight:normal; display:flex; align-items:center; gap:4px;';
     btnHelp.onclick = async () => {
       const { AgentGuideModal } = await import('../ui/AgentGuideModal.js');
       AgentGuideModal.show();
     };
     
     title.appendChild(titleText);
+    title.appendChild(btnCommunity);
     title.appendChild(btnHelp);
     this.container.appendChild(title);
 
-    // Middle: Agent List
+    // Middle: Content Container
     const listContainer = document.createElement('div');
-    listContainer.style.cssText = 'flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:10px;';
+    listContainer.style.cssText = 'flex:1; overflow-y:auto; display:flex; flex-direction:column; background: #0d1117;';
+    
+    if (this.viewMode === 'community') {
+      const { CommunityHub } = await import('../ui/CommunityHub.js');
+      CommunityHub.render(listContainer, () => {
+        this.viewMode = 'local'; // switch back to local after importing
+        this.updateView();
+      });
+      this.container.appendChild(listContainer);
+      return; // Skip rendering local bottom container
+    }
+
+    listContainer.style.padding = '10px';
+    listContainer.style.gap = '10px';
+    listContainer.style.background = 'transparent';
     
     const agents = AgentStore.listAgents();
     
@@ -108,6 +145,21 @@ export class AgentPanel {
           import('../ui/ToastManager.js').then(m => m.ToastManager.success('Agent config copied to clipboard!'));
         };
 
+        const btnPublish = document.createElement('button');
+        btnPublish.innerText = '☁️ Publish';
+        btnPublish.title = 'Publish to Community Hub';
+        btnPublish.style.cssText = 'padding:2px 8px; font-size:0.8em; background:transparent; border:1px solid #555; color:#3fb950; border-radius:4px; cursor:pointer; flex-shrink:0; margin-left:4px; margin-right:4px;';
+        btnPublish.onclick = async (e) => {
+          e.stopPropagation();
+          const desc = prompt("Describe brevemente para qué sirve tu agente:", agent.description || "");
+          if (desc !== null) {
+            const { CommunityHub } = await import('../ui/CommunityHub.js');
+            CommunityHub.publishAgent(agent, desc);
+            const { ToastManager } = await import('../ui/ToastManager.js');
+            ToastManager.success('Agente publicado en el Hub local exitosamente.');
+          }
+        };
+
         const btnEdit = document.createElement('button');
         btnEdit.innerText = 'Edit';
         btnEdit.style.cssText = 'padding:2px 8px; font-size:0.8em; background:transparent; border:1px solid #555; color:#c9d1d9; border-radius:4px; cursor:pointer; flex-shrink:0;';
@@ -120,6 +172,7 @@ export class AgentPanel {
         
         header.appendChild(titleArea);
         header.appendChild(btnShare);
+        header.appendChild(btnPublish);
         header.appendChild(btnEdit);
         
         const desc = document.createElement('div');
