@@ -23,8 +23,7 @@ export const CommunityHub = {
     
     const body = encodeURIComponent(
       "### 🤖 Descripción del Agente\n" + description + "\n\n" +
-      "### ⚙️ Agent JSON Payload\n```json\n" + JSON.stringify(exportAgent, null, 2) + "\n```\n\n" +
-      "---\n*Nota para el Curador (Mortymerio): Revisa los prompts y las herramientas solicitadas antes de copiar este JSON en `public/agents_registry.json`.*"
+      "### ⚙️ Agent JSON Payload\n```json\n" + JSON.stringify(exportAgent, null, 2) + "\n```\n"
     );
 
     const url = this.repoIssuesUrl + "/new?title=" + title + "&body=" + body + "&labels=agent-submission";
