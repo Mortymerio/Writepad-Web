@@ -146,6 +146,14 @@ export const CommunityHub = {
           </div>
 
           <div>
+            <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">Herramientas (Permisos Solicitados)</h4>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              ${(agent.tools || []).map(t => `<span style="background: rgba(210, 168, 255, 0.1); color: #d2a8ff; border: 1px solid rgba(210, 168, 255, 0.4); padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-family: monospace;">${t}</span>`).join('')}
+              ${(!agent.tools || agent.tools.length === 0) ? '<span style="color:#8b949e; font-style:italic;">Ninguna</span>' : ''}
+            </div>
+          </div>
+
+          <div>
             <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">System Prompt</h4>
             <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #a5d6ff;">${agent.systemPrompt}</pre>
           </div>
