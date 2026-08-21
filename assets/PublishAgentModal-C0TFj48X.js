@@ -6,7 +6,7 @@ var e={show(e,t){let n=document.getElementById(`publish-agent-modal`);if(!n){n=d
           </div>
           <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
             <div>
-              <div style="margin-bottom: 8px; font-weight: bold; color: #c9d1d9;">Agente a publicar: <span style="color: #3fb950;">${e.name}</span></div>
+              <div style="margin-bottom: 8px; font-weight: bold; color: #c9d1d9;">Agente a publicar: <span id="publish-agent-name-display" style="color: #3fb950;"></span></div>
               <div style="font-size: 0.85em; color: #8b949e;">Comparte tu agente con el resto del equipo. Escribe una descripción clara para que sepan de qué es capaz.</div>
             </div>
             
@@ -18,4 +18,4 @@ var e={show(e,t){let n=document.getElementById(`publish-agent-modal`);if(!n){n=d
             </div>
           </div>
         </div>
-      `,document.body.appendChild(n);let t=()=>{n.style.display=`none`};document.getElementById(`btn-close-publish-modal`).onclick=t,document.getElementById(`btn-cancel-publish`).onclick=t,n.onclick=e=>{e.target===n&&t()}}let r=document.getElementById(`publish-agent-desc`);r.value=e.description||``;let i=document.getElementById(`btn-confirm-publish`),a=i.cloneNode(!0);i.parentNode.replaceChild(a,i),a.onclick=()=>{let e=r.value.trim();n.style.display=`none`,t&&t(e)},n.style.display=`flex`,setTimeout(()=>r.focus(),100)}};export{e as PublishAgentModal};
+      `,document.body.appendChild(n);let e=()=>{n.style.display=`none`};document.getElementById(`btn-close-publish-modal`).onclick=e,document.getElementById(`btn-cancel-publish`).onclick=e,n.onclick=t=>{t.target===n&&e()}}document.getElementById(`publish-agent-name-display`).innerText=e.name;let r=document.getElementById(`publish-agent-desc`);r.value=e.description||``;let i=document.getElementById(`btn-confirm-publish`),a=i.cloneNode(!0);i.parentNode.replaceChild(a,i),a.onclick=()=>{let e=r.value.trim();n.style.display=`none`,t&&t(e)},n.style.display=`flex`,setTimeout(()=>r.focus(),100)}};export{e as PublishAgentModal};
