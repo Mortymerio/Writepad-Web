@@ -150,6 +150,13 @@ export const CommunityHub = {
             <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #a5d6ff;">${agent.systemPrompt}</pre>
           </div>
 
+          ${agent.initialPrompt ? `
+          <div>
+            <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">Initial Task</h4>
+            <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #7ee787;">${agent.initialPrompt}</pre>
+          </div>
+          ` : ''}
+
           <div style="display: flex; gap: 10px;">
             <button id="btn-upvote-agent" style="flex: 1; padding: 10px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
               Votar Positivo (${this.getVotes(agent.id)})
