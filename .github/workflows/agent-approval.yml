@@ -1,0 +1,65 @@
+﻿name: Auto Approve Agent
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+
+jobs:
+  approve-agent:
+    if: github.event.label.name == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Parse and Add Agent
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            const body = context.payload.issue.body;
+            const match = body.match(/```json\n([\s\S]*?)\n```/);
+            
+            if (!match) {
+              console.log("No JSON found in issue body.");
+              return;
+            }
+            
+            let newAgent;
+            try {
+              newAgent = JSON.parse(match[1]);
+            } catch (e) {
+              console.error("Invalid JSON:", e);
+              return;
+            }
+            
+            const issueNumber = context.issue.number;
+            newAgent.id = "hub_auto_" + Date.now();
+            newAgent.issue_number = issueNumber;
+            
+            const registryPath = "public/agents_registry.json";
+            let registry = [];
+            if (fs.existsSync(registryPath)) {
+              registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
+            }
+            
+            if (registry.some(a => a.issue_number === issueNumber)) {
+              console.log("Agent from this issue already exists in registry.");
+              return;
+            }
+            
+            registry.push(newAgent);
+            fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2), "utf8");
+            
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/agents_registry.json
+          git commit -m "chore(hub): auto-add agent from issue #${{ github.event.issue.number }}" || echo "No changes"
+          git push
+
