@@ -1,4 +1,4 @@
-import{r as e}from"./index-CgCcdued.js";var t={show(){let t=document.getElementById(`agent-guide-modal`);t||(t=document.createElement(`div`),t.id=`agent-guide-modal`,t.className=`modal-overlay`,t.style.display=`none`,t.innerHTML=`
+import{r as e}from"./index-EdU8PYdG.js";var t={show(){let t=document.getElementById(`agent-guide-modal`);t||(t=document.createElement(`div`),t.id=`agent-guide-modal`,t.className=`modal-overlay`,t.style.display=`none`,t.innerHTML=`
         <div class="modal-content" style="width: 850px; max-width: 95vw; height: 85vh; max-height: 850px; display: flex; flex-direction: column; color: var(--text-primary); background: #1e1e1e; border: 1px solid #444; border-radius: 8px;">
           <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #444; background: #2d333b; border-radius: 8px 8px 0 0;">
             <h3 style="margin: 0; font-size: 1.2em; color: #58a6ff;">📖 El Camino del Agent-Fu</h3>
