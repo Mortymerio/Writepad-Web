@@ -1,109 +1,106 @@
 export const CommunityHub = {
-  // Base mock data
-  defaultRegistry: [
-    {
-      id: "hub_architect_001",
-      name: "Vibecoder Architect",
-      author: "Mortymerio",
-      description: "Genera la estructura de un proyecto (SPECS.md, ROADMAP.md) a partir de una idea.",
-      systemPrompt: "Eres un Ingeniero de Software Senior especializado en desarrollo moderno y arquitectura de sistemas. Tu objetivo es leer la idea inicial del usuario y diseñar una estructura de proyecto robusta, generando especificaciones (SPECS.md) y una hoja de ruta (ROADMAP.md). Pide confirmación paso a paso.",
-      initialPrompt: "Paso 1: Analiza la pestaña actual. Paso 2: Genera los archivos de arquitectura.",
-      model: "gemini-1.5-pro",
-      tools: ["read_current_tab", "create_document"],
-      autonomy: "ask"
-    },
-    {
-      id: "hub_security_002",
-      name: "Red Teamer (Auditor)",
-      author: "Anonymous",
-      description: "Audita tu código actual buscando vulnerabilidades OWASP.",
-      systemPrompt: "Eres un experto en ciberseguridad ofensiva (Red Team). Tu objetivo es auditar el código provisto, buscando vulnerabilidades como XSS, SQLi, LFI, etc. Escribe comentarios de advertencia en el código original sobre las líneas vulnerables.",
-      initialPrompt: "Revisa mi pestaña actual y anota las vulnerabilidades.",
-      model: "gemini-1.5-pro",
-      tools: ["read_current_tab", "inject_to_editor"],
-      autonomy: "ask"
-    }
-  ],
+  registryUrl: "https://raw.githubusercontent.com/Mortymerio/Writepad-Web/master/public/agents_registry.json",
+  repoApiUrl: "https://api.github.com/repos/Mortymerio/Writepad-Web",
+  repoIssuesUrl: "https://github.com/Mortymerio/Writepad-Web/issues",
 
-  getRegistry() {
-    const data = localStorage.getItem('hub_registry');
-    if (data) return JSON.parse(data);
-    return this.defaultRegistry;
+  async getRegistry() {
+    try {
+      // Intentar leer de GitHub Raw siempre, para saltarnos el build cache
+      const res = await fetch(this.registryUrl + "?t=" + Date.now()); // cache buster
+      if (!res.ok) throw new Error("Network response was not ok");
+      return await res.json();
+    } catch (e) {
+      console.warn("Fallo al leer de GitHub, usando fallback", e);
+      // Fallback a local/dev 
+      const basePath = window.location.pathname.includes('/Writepad-Web') ? '/Writepad-Web/' : '/';
+      const localRes = await fetch(basePath + 'agents_registry.json');
+      return await localRes.json();
+    }
   },
 
   publishAgent(agent, description) {
-    const registry = this.getRegistry();
-    registry.push({
-      id: "hub_custom_" + Date.now(),
-      name: agent.name,
-      author: "Local Developer",
-      description: description || "Agente subido desde el editor local.",
-      systemPrompt: agent.systemPrompt,
-      initialPrompt: agent.initialPrompt,
-      model: agent.model,
-      tools: agent.tools,
-      autonomy: "ask" // Always force ask in the hub display
-    });
-    localStorage.setItem('hub_registry', JSON.stringify(registry));
+    const title = encodeURIComponent(`[Agent Submission]: ${agent.name}`);
+    
+    // Preparar payload json limpio sin ID interno
+    const exportAgent = { ...agent };
+    delete exportAgent.id;
+    
+    const body = encodeURIComponent(
+      `### 🤖 Descripción del Agente\n${description}\n\n` +
+      `### ⚙️ Agent JSON Payload\n\`\`\`json\n${JSON.stringify(exportAgent, null, 2)}\n\`\`\`\n\n` +
+      `---\n*Nota para el Curador (Mortymerio): Revisa los prompts y las herramientas solicitadas antes de copiar este JSON en \`public/agents_registry.json\`.*`
+    );
+
+    const url = `${this.repoIssuesUrl}/new?title=${title}&body=${body}&labels=agent-submission`;
+    window.open(url, '_blank');
   },
 
-  getVotes(hubId) {
-    return parseInt(localStorage.getItem(`hub_votes_${hubId}`) || "0");
+  async getIssueData(issueNumber) {
+    if (!issueNumber) return { votes: 0, comments: 0 };
+    try {
+      const res = await fetch(`${this.repoApiUrl}/issues/${issueNumber}`);
+      if (!res.ok) return { votes: 0, comments: 0 };
+      const data = await res.json();
+      return {
+        votes: data.reactions ? data.reactions['+1'] : 0,
+        comments: data.comments || 0
+      };
+    } catch (e) {
+      return { votes: 0, comments: 0 };
+    }
   },
 
-  setVote(hubId) {
-    const current = this.getVotes(hubId);
-    localStorage.setItem(`hub_votes_${hubId}`, current + 1);
-  },
-
-  getComments(hubId) {
-    const data = localStorage.getItem(`hub_comments_${hubId}`);
-    return data ? JSON.parse(data) : [];
-  },
-
-  addComment(hubId, author, text) {
-    const comments = this.getComments(hubId);
-    comments.push({ author: author || "Anonymous", text, date: new Date().toLocaleDateString() });
-    localStorage.setItem(`hub_comments_${hubId}`, JSON.stringify(comments));
-  },
-
-  render(container, onImport) {
+  async render(container, onImport) {
     container.innerHTML = "";
     
     const header = document.createElement("div");
-    header.style.cssText = "padding: 10px; background: rgba(88, 166, 255, 0.1); border-bottom: 1px solid #58a6ff; color: #58a6ff; font-weight: bold; text-align: center; border-radius: 4px;";
-    header.innerHTML = "Hub de Agentes (Local PoC)";
+    header.style.cssText = "padding: 15px; border-bottom: 1px solid #30363d; background: #0d1117;";
+    header.innerHTML = `
+      <h3 style="margin: 0; color: #58a6ff; display: flex; align-items: center; gap: 8px;">
+        🌐 Hub Comunitario (Oficial)
+      </h3>
+      <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #8b949e;">
+        Agentes verificados alojados en el repositorio oficial de GitHub.
+      </p>
+    `;
     container.appendChild(header);
 
     const list = document.createElement("div");
     list.style.cssText = "flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 15px;";
+    container.appendChild(list);
 
-    this.getRegistry().forEach(agent => {
+    list.innerHTML = `<div style="padding:20px; color:#8b949e; text-align:center;">Cargando agentes de GitHub...</div>`;
+
+    let registry = [];
+    try {
+      registry = await this.getRegistry();
+    } catch(e) {
+      list.innerHTML = `<div style="padding:20px; color:#f85149; text-align:center;">Error al cargar el Hub. Asegurate de tener conexión.</div>`;
+      return;
+    }
+    
+    list.innerHTML = "";
+
+    for (const agent of registry) {
       const card = document.createElement("div");
       card.style.cssText = "background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: border-color 0.2s;";
       card.onmouseover = () => card.style.borderColor = "#8b949e";
       card.onmouseout = () => card.style.borderColor = "#30363d";
 
       const topRow = document.createElement("div");
-      topRow.style.cssText = "display: flex; justify-content: space-between; align-items: flex-start;";
-      
-      const title = document.createElement("div");
-      title.innerHTML = `<div style="font-weight: bold; color: #58a6ff; font-size: 1.1em;">${agent.name}</div><div style="font-size: 0.8em; color: #8b949e;">by @${agent.author}</div>`;
-      
-      const votes = document.createElement("div");
-      votes.innerHTML = `Upvotes: ${this.getVotes(agent.id)}`;
-      votes.style.cssText = "background: #2d333b; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; color: #c9d1d9;";
-      
-      topRow.appendChild(title);
-      topRow.appendChild(votes);
-      
+      topRow.style.cssText = "display: flex; justify-content: space-between; align-items: center;";
+      topRow.innerHTML = `
+        <div style="font-weight: bold; color: #c9d1d9;">${agent.name} <span style="font-size:0.8em; font-weight:normal; color:#8b949e;">by @${agent.author}</span></div>
+        <div style="font-size: 0.8em; background: rgba(56, 139, 253, 0.15); color: #58a6ff; padding: 2px 6px; border-radius: 10px;">${agent.model}</div>
+      `;
+
       const desc = document.createElement("div");
       desc.style.cssText = "font-size: 0.9em; color: #c9d1d9;";
       desc.innerText = agent.description;
 
       const toolsDiv = document.createElement("div");
       toolsDiv.style.cssText = "display: flex; gap: 5px; flex-wrap: wrap;";
-      agent.tools.forEach(t => {
+      (agent.tools || []).forEach(t => {
         const badge = document.createElement("span");
         badge.innerText = t;
         badge.style.cssText = "background: rgba(210, 168, 255, 0.1); color: #d2a8ff; border: 1px solid rgba(210, 168, 255, 0.4); padding: 2px 6px; border-radius: 10px; font-size: 0.7em; font-family: monospace;";
@@ -116,27 +113,37 @@ export const CommunityHub = {
 
       card.onclick = () => this.showAgentDetails(agent, onImport);
       list.appendChild(card);
-    });
-
-    container.appendChild(list);
+    }
   },
 
   async showAgentDetails(agent, onImport) {
     let modal = document.getElementById('hub-details-modal');
-    if (modal) modal.remove();
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'hub-details-modal';
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+    }
 
-    modal = document.createElement('div');
-    modal.id = 'hub-details-modal';
-    modal.className = 'modal-overlay';
+    // Mostrar estado de carga para los datos de github
+    modal.style.display = 'flex';
+    modal.innerHTML = \`
+      <div class="modal-content" style="width: 700px; max-width: 95vw; height: 85vh; background: #0d1117; border: 1px solid #444; border-radius: 8px; color: #c9d1d9; display: flex; justify-content: center; align-items: center;">
+        <h3 style="color: #8b949e;">Conectando con GitHub...</h3>
+      </div>
+    \`;
+
+    // Fetch realtime stats from GitHub Issues
+    const stats = await this.getIssueData(agent.issue_number);
     
-    modal.innerHTML = `
+    modal.innerHTML = \`
       <div class="modal-content" style="width: 700px; max-width: 95vw; height: 85vh; background: #0d1117; border: 1px solid #444; border-radius: 8px; color: #c9d1d9; display: flex; flex-direction: column;">
         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #30363d; background: #161b22; border-radius: 8px 8px 0 0;">
           <div>
-            <h3 style="margin: 0; color: #58a6ff;">${agent.name}</h3>
-            <span style="font-size: 0.85em; color: #8b949e;">by @${agent.author}</span>
+            <h3 style="margin: 0; color: #58a6ff;">\${agent.name}</h3>
+            <span style="font-size: 0.85em; color: #8b949e;">by @\${agent.author}</span>
           </div>
-          <button id="btn-close-hub-details" style="background: transparent; border: none; color: #8b949e; font-size: 1.5em; cursor: pointer;">x</button>
+          <button id="btn-close-hub-details" style="background: transparent; border: none; color: #8b949e; font-size: 1.5em; cursor: pointer;">&times;</button>
         </div>
         
         <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
@@ -148,53 +155,53 @@ export const CommunityHub = {
           <div>
             <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">Herramientas (Permisos Solicitados)</h4>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              ${(agent.tools || []).map(t => `<span style="background: rgba(210, 168, 255, 0.1); color: #d2a8ff; border: 1px solid rgba(210, 168, 255, 0.4); padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-family: monospace;">${t}</span>`).join('')}
-              ${(!agent.tools || agent.tools.length === 0) ? '<span style="color:#8b949e; font-style:italic;">Ninguna</span>' : ''}
+              \${(agent.tools || []).map(t => \`<span style="background: rgba(210, 168, 255, 0.1); color: #d2a8ff; border: 1px solid rgba(210, 168, 255, 0.4); padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-family: monospace;">\${t}</span>\`).join('')}
+              \${(!agent.tools || agent.tools.length === 0) ? '<span style="color:#8b949e; font-style:italic;">Ninguna</span>' : ''}
             </div>
           </div>
 
           <div>
             <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">System Prompt</h4>
-            <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #a5d6ff;">${agent.systemPrompt}</pre>
+            <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #a5d6ff;">\${agent.systemPrompt}</pre>
           </div>
 
-          ${agent.initialPrompt ? `
+          \${agent.initialPrompt ? \`
           <div>
             <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">Initial Task</h4>
-            <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #7ee787;">${agent.initialPrompt}</pre>
+            <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #7ee787;">\${agent.initialPrompt}</pre>
           </div>
-          ` : ''}
+          \` : ''}
 
           <div style="display: flex; gap: 10px;">
-            <button id="btn-upvote-agent" style="flex: 1; padding: 10px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
-              Votar Positivo (${this.getVotes(agent.id)})
-            </button>
             <button id="btn-import-agent" style="flex: 2; padding: 10px; background: #238636; border: none; color: white; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
-              Importar a Local (Forzar Ask)
+              ⬇️ Importar a Local (Forzar Ask)
             </button>
           </div>
 
           <hr style="border: none; border-top: 1px solid #30363d; width: 100%; margin: 10px 0;">
 
           <div>
-            <h4 style="margin: 0 0 15px 0; color: #c9d1d9;">Comentarios de la Comunidad</h4>
-            <div id="hub-comments-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"></div>
+            <h4 style="margin: 0 0 15px 0; color: #c9d1d9; display:flex; justify-content:space-between;">
+              <span>Comunidad de GitHub</span>
+              <span style="font-size:0.8em; color:#8b949e;">\${stats.votes} 👍 | \${stats.comments} 💬</span>
+            </h4>
             
-            <div style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d;">
-              <input type="text" id="hub-comment-author" placeholder="Tu nombre (opcional - enter para Anonymous)" style="width: 100%; padding: 8px; margin-bottom: 8px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; box-sizing: border-box;">
-              <textarea id="hub-comment-text" placeholder="Escribe tu comentario aqui..." style="width: 100%; padding: 8px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; box-sizing: border-box; resize: vertical; min-height: 60px;"></textarea>
-              <button id="btn-post-comment" style="margin-top: 8px; padding: 6px 15px; background: #1f6feb; border: none; color: white; border-radius: 4px; cursor: pointer; float: right;">Publicar</button>
-              <div style="clear: both;"></div>
+            <div style="background: #161b22; padding: 20px; border-radius: 6px; border: 1px solid #30363d; text-align: center;">
+              <p style="color: #8b949e; margin-bottom: 15px;">Los comentarios y votos se administran en el repositorio oficial de GitHub para garantizar la seguridad y evitar spam.</p>
+              \${agent.issue_number ? \`
+                <button id="btn-gh-discuss" style="padding: 10px 20px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+                   Abrir Hilo de Discusión (#\${agent.issue_number})
+                </button>
+              \` : \`
+                <p style="color: #ff7b72; font-size: 0.9em;">Este agente oficial no tiene un hilo de discusión vinculado.</p>
+              \`}
             </div>
           </div>
-
         </div>
       </div>
-    `;
-    
-    document.body.appendChild(modal);
+    \`;
 
-    const close = () => modal.remove();
+    const close = () => { modal.style.display = 'none'; };
     document.getElementById('btn-close-hub-details').onclick = close;
     modal.onclick = (e) => { if (e.target === modal) close(); };
 
@@ -216,45 +223,13 @@ export const CommunityHub = {
       if (onImport) onImport();
     };
 
-    const btnUpvote = document.getElementById('btn-upvote-agent');
-    btnUpvote.onclick = () => {
-      this.setVote(agent.id);
-      btnUpvote.innerHTML = `Votar Positivo (${this.getVotes(agent.id)})`;
-      btnUpvote.style.background = "#238636";
-      setTimeout(() => btnUpvote.style.background = "#21262d", 1000);
-    };
-
-    const renderComments = () => {
-      const listDiv = document.getElementById('hub-comments-list');
-      listDiv.innerHTML = "";
-      const comments = this.getComments(agent.id);
-      
-      if (comments.length === 0) {
-        listDiv.innerHTML = "<div style='color: #8b949e; font-style: italic; font-size: 0.9em;'>Se el primero en comentar...</div>";
-        return;
-      }
-      
-      comments.forEach(c => {
-        const cdiv = document.createElement('div');
-        cdiv.style.cssText = "background: #21262d; border-radius: 6px; padding: 10px; font-size: 0.9em;";
-        cdiv.innerHTML = `<div style="color: #8b949e; margin-bottom: 4px;"><strong>${c.author}</strong> - ${c.date}</div><div style="color: #c9d1d9; white-space: pre-wrap;">${c.text}</div>`;
-        listDiv.appendChild(cdiv);
-      });
-    };
-    
-    renderComments();
-
-    document.getElementById('btn-post-comment').onclick = () => {
-      const text = document.getElementById('hub-comment-text').value.trim();
-      if (!text) return;
-      let author = document.getElementById('hub-comment-author').value.trim();
-      if (!author) author = "Anonymous";
-      
-      this.addComment(agent.id, author, text);
-      document.getElementById('hub-comment-text').value = "";
-      renderComments();
-    };
-
-    modal.style.display = 'flex';
+    const discussBtn = document.getElementById('btn-gh-discuss');
+    if (discussBtn) {
+      discussBtn.onmouseover = () => discussBtn.style.background = '#30363d';
+      discussBtn.onmouseout = () => discussBtn.style.background = '#21262d';
+      discussBtn.onclick = () => {
+        window.open(\`\${this.repoIssuesUrl}/\${agent.issue_number}\`, '_blank');
+      };
+    }
   }
 };
