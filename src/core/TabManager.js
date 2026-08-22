@@ -1,5 +1,6 @@
 import * as monaco from 'monaco-editor';
 import { EncodingManager, Encodings } from './EncodingManager';
+import { EventBus } from './EventBus';
 
 export const TabManager = {
   tabs: [],
@@ -25,18 +26,29 @@ export const TabManager = {
     return null;
   },
 
+  _setupModelListeners(tab, index) {
+    tab.model.onDidChangeContent(() => {
+      EventBus.emit('TAB_CONTENT_CHANGED', { index });
+    });
+  },
+
   createNewTab(title) {
     const t = title || `new ${this.tabs.length + 1}`;
+    const model = monaco.editor.createModel('', 'plaintext');
     const tab = {
       title: t,
       content: '',
-      model: monaco.editor.createModel('', 'plaintext'),
+      model: model,
       encoding: Encodings.UTF8,
       unsavedDecos: [],
       savedDecos: []
     };
     this.tabs.push(tab);
-    this.switchTab(this.tabs.length - 1);
+    const index = this.tabs.length - 1;
+    this._setupModelListeners(tab, index);
+    
+    EventBus.emit('TAB_CREATED', { index, tab });
+    this.switchTab(index);
     this.renderTabs();
   },
 
@@ -53,12 +65,19 @@ export const TabManager = {
       this.renderTabs();
       if (this.callbacks.updateStatusBar) this.callbacks.updateStatusBar();
       if (this.callbacks.updateEolDecorations) this.callbacks.updateEolDecorations();
+      
+      EventBus.emit('TAB_SWITCHED', { index, tab: this.tabs[index] });
     }
   },
 
   closeTab(index) {
     if (this.tabs.length === 1) return; // Don't close last tab for now
     this.tabs.splice(index, 1);
+    
+    // update indices in listeners?
+    // for simplicity we will just emit TAB_CLOSED
+    EventBus.emit('TAB_CLOSED', { index });
+    
     if (this.activeTabIndex >= this.tabs.length) {
       this.activeTabIndex = this.tabs.length - 1;
     }
@@ -136,7 +155,10 @@ export const TabManager = {
             savedDecos: []
           };
           this.tabs.push(newTab);
-          this.switchTab(this.tabs.length - 1);
+          const index = this.tabs.length - 1;
+          this._setupModelListeners(newTab, index);
+          EventBus.emit('TAB_CREATED', { index, tab: newTab });
+          this.switchTab(index);
         }
       } else {
         const input = document.createElement('input');
@@ -158,7 +180,10 @@ export const TabManager = {
                 savedDecos: []
               };
               this.tabs.push(newTab);
-              this.switchTab(this.tabs.length - 1);
+              const index = this.tabs.length - 1;
+              this._setupModelListeners(newTab, index);
+              EventBus.emit('TAB_CREATED', { index, tab: newTab });
+              this.switchTab(index);
             };
             reader.readAsArrayBuffer(file);
           }
@@ -207,9 +232,8 @@ export const TabManager = {
     })));
     
     tab.unsavedDecos = tab.model.deltaDecorations(tab.unsavedDecos, []); // Clear unsaved
-    this.renderTabs(); // Update ● indicator
+    this.renderTabs();
   },
-
 
   async saveToDisk(tab) {
     try {
@@ -229,7 +253,6 @@ export const TabManager = {
         await writable.close();
         return true;
       } else {
-        // Fallback download
         const a = document.createElement('a');
         const buffer = EncodingManager.encode(tab.model.getValue(), tab.encoding || Encodings.UTF8);
         const blob = new Blob([buffer], {type: 'application/octet-stream'});
@@ -287,13 +310,18 @@ export const TabManager = {
       const state = JSON.parse(stateJson);
       if (!state.tabs || state.tabs.length === 0) return false;
       
-      this.tabs = state.tabs.map(tabData => ({
-        title: tabData.title,
-        model: monaco.editor.createModel(tabData.content, tabData.language),
-        encoding: tabData.encoding,
-        unsavedDecos: [],
-        savedDecos: []
-      }));
+      this.tabs = state.tabs.map((tabData, index) => {
+        const newTab = {
+          title: tabData.title,
+          model: monaco.editor.createModel(tabData.content, tabData.language),
+          encoding: tabData.encoding,
+          unsavedDecos: [],
+          savedDecos: []
+        };
+        this._setupModelListeners(newTab, index);
+        EventBus.emit('TAB_CREATED', { index, tab: newTab });
+        return newTab;
+      });
       
       this.activeTabIndex = state.activeTabIndex >= 0 && state.activeTabIndex < this.tabs.length ? state.activeTabIndex : 0;
       this.switchTab(this.activeTabIndex);

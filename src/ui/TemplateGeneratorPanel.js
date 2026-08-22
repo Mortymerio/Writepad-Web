@@ -7,8 +7,8 @@ export const TemplateGeneratorPanel = {
 
   renderSidebar(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary);">
-        <div style="margin-bottom: 10px;">
+      <div class="panel-container">
+        <div class="panel-group">
           <h3 style="margin: 0 0 5px 0; font-size: 1.1em; color: var(--accent);">Writeup Template</h3>
           <p style="margin: 0; font-size: 0.8em; color: var(--text-status);">Generate a new markdown writeup structure.</p>
         </div>
@@ -22,7 +22,7 @@ export const TemplateGeneratorPanel = {
             <label style="font-weight: bold; font-size: 0.85em;">Target IP:</label>
             <input type="text" id="tpl-ip" placeholder="10.10.10.X" style="width: 100%; box-sizing: border-box; padding: 5px; margin-top: 2px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none;" />
           </div>
-          <div style="margin-bottom: 10px;">
+          <div class="panel-group">
           <label style="font-size: 0.85em; font-weight: bold; color: var(--text-status);">OS:</label>
           <select id="tpl-os" style="width: 100%; box-sizing: border-box; padding: 5px; margin-top: 2px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none;">
             <option style="background: var(--bg-secondary); color: var(--text-primary);">Linux</option>

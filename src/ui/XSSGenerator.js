@@ -23,7 +23,7 @@ export const XSSGenerator = {
   
   renderSidebar(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 0;">
+      <div class="panel-container">
         <div style="padding: 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
           <div style="margin-bottom: 5px;">
             <label style="font-size: 0.8em; color: var(--text-primary); font-weight: bold;">Inner JS Payload:</label>

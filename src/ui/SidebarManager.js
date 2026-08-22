@@ -119,13 +119,13 @@ export const SidebarManager = {
       const rightSidebar = document.getElementById('right-sidebar');
       const rightTitle = document.getElementById('right-sidebar-title');
       const rightResizeHandle = document.getElementById('right-sidebar-resize-handle');
-      
+        
       if (this.activeRightSidebar === panelName) {
-        rightSidebar.style.display = 'none';
+        rightSidebar.classList.add('hidden'); rightSidebar.classList.remove('flex');
         if (rightResizeHandle) rightResizeHandle.style.display = 'none';
         this.activeRightSidebar = null;
       } else {
-        rightSidebar.style.display = 'flex';
+        rightSidebar.classList.remove('hidden'); rightSidebar.classList.add('flex');
         if (rightResizeHandle) rightResizeHandle.style.display = 'block';
         this.activeRightSidebar = panelName;
         
@@ -143,9 +143,11 @@ export const SidebarManager = {
 
     const sidebar = document.getElementById('sidebar');
     const title = document.getElementById('sidebar-title');
+    const resizeHandle = document.getElementById('sidebar-resize-handle');
     
     if (this.activeSidebar === panelName || panelName === null) {
-      sidebar.style.display = 'none';
+      sidebar.classList.add('hidden'); sidebar.classList.remove('flex');
+      if (resizeHandle) resizeHandle.style.display = 'none';
       this.activeSidebar = null;
       localStorage.removeItem('writepad_active_left_sidebar');
       this.updateButtonStates();
@@ -153,7 +155,8 @@ export const SidebarManager = {
       return;
     }
     
-    sidebar.style.display = 'flex';
+    sidebar.classList.remove('hidden'); sidebar.classList.add('flex');
+    if (resizeHandle) resizeHandle.style.display = 'block';
     this.activeSidebar = panelName;
     localStorage.setItem('writepad_active_left_sidebar', panelName);
     
@@ -478,21 +481,21 @@ export const SidebarManager = {
 
     const macros = window.MacroEngine.getSavedMacros();
     if (macros.length === 0) {
-      container.innerHTML = '<div style="padding: 10px; color: #888;">No saved macros</div>';
+      container.innerHTML = '<div class="sidebar-empty">No saved macros</div>';
       return;
     }
 
     macros.forEach(macro => {
       const item = document.createElement('div');
       item.className = 'sidebar-list-item';
-      item.style.display = 'flex';
-      item.style.justifyContent = 'space-between';
-      item.style.alignItems = 'center';
+      item.classList.add('sidebar-item');
+      
+      
       
       const nameSpan = document.createElement('span');
       nameSpan.innerText = macro.name;
-      nameSpan.style.flex = '1';
-      nameSpan.style.cursor = 'pointer';
+      nameSpan.classList.add('sidebar-item__name');
+      
       nameSpan.onclick = () => window.MacroEngine.playMacro(macro.steps);
 
       const deleteBtn = document.createElement('button');
@@ -516,7 +519,7 @@ export const SidebarManager = {
     
     // Add search input
     const searchContainer = document.createElement('div');
-    searchContainer.style.padding = '8px';
+    searchContainer.classList.add('sidebar-search');
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'Search documents...';
@@ -536,7 +539,7 @@ export const SidebarManager = {
         
         const item = document.createElement('div');
         item.className = 'sidebar-list-item' + (index === activeTabIndex ? ' active' : '');
-        item.innerHTML = `<span class="icon">📄</span><span class="tab-title-text" style="flex:1"></span>`;
+        item.innerHTML = `<span class="icon">📄</span><span class="tab-title-text" class="sidebar-item__name"></span>`;
         item.querySelector('.tab-title-text').textContent = tab.title;
         
         const closeBtn = document.createElement('button');
@@ -562,7 +565,7 @@ export const SidebarManager = {
     const editor = this.callbacks.getEditor();
     
     if (activeTabIndex === -1 || !editor) {
-      container.innerHTML = '<div style="padding: 10px; color: #888;">No active document</div>';
+      container.innerHTML = '<div class="sidebar-empty">No active document</div>';
       return;
     }
     
@@ -584,13 +587,13 @@ export const SidebarManager = {
     });
     
     if (functions.length === 0) {
-      container.innerHTML = '<div style="padding: 10px; color: #888;">No functions found</div>';
+      container.innerHTML = '<div class="sidebar-empty">No functions found</div>';
       return;
     }
     
     // Add search input
     const searchContainer = document.createElement('div');
-    searchContainer.style.padding = '8px';
+    searchContainer.classList.add('sidebar-search');
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'Search functions...';
@@ -630,16 +633,16 @@ export const SidebarManager = {
 
   async renderSidebarWorkspace(container) {
     if (!window.showDirectoryPicker) {
-      container.innerHTML = '<div style="padding:10px;">Tu navegador no soporta la API de File System Access para abrir carpetas locales.</div>';
+      container.innerHTML = '<div class="sidebar-empty">Tu navegador no soporta la API de File System Access para abrir carpetas locales.</div>';
       return;
     }
     
     if (!this.workspaceHandle) {
       const btnContainer = document.createElement('div');
-      btnContainer.style.padding = '10px';
+      btnContainer.classList.add('sidebar-search');
       const btn = document.createElement('button');
       btn.innerText = '📂 Open Folder...';
-      btn.style.cssText = 'padding: 6px 12px; cursor: pointer;';
+      btn.className = 'sidebar-btn';
       btn.onclick = async () => {
         try {
           this.workspaceHandle = await window.showDirectoryPicker();
@@ -656,12 +659,12 @@ export const SidebarManager = {
     
     // Add a header showing the open folder with a close button
     const header = document.createElement('div');
-    header.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:var(--bg-secondary); border-bottom:1px solid var(--border-dark); font-size:12px; color:var(--text-primary);';
+    header.className = 'sidebar-header';
     header.innerHTML = `<span title="${this.workspaceHandle.name}">📁 <strong>${this.workspaceHandle.name}</strong></span>`;
     const closeFolderBtn = document.createElement('button');
     closeFolderBtn.innerText = '✕';
     closeFolderBtn.title = 'Close Folder';
-    closeFolderBtn.style.cssText = 'background:none; border:none; color:var(--text-primary); cursor:pointer; font-size:14px; line-height:1;';
+    closeFolderBtn.className = 'sidebar-close-btn';
     closeFolderBtn.onclick = async () => {
       this.workspaceHandle = null;
       await WorkspaceDB.clear();
@@ -718,7 +721,7 @@ export const SidebarManager = {
           
           const childrenContainer = document.createElement('div');
           childrenContainer.className = 'tree-folder-children';
-          childrenContainer.style.paddingLeft = '15px';
+          childrenContainer.className = 'sidebar-tree__children';
           
           item.onclick = async (e) => {
             e.stopPropagation();
@@ -734,7 +737,7 @@ export const SidebarManager = {
               openFolders.add(fullPath);
               saveOpenFolders();
               if (childrenContainer.childNodes.length === 0) {
-                item.querySelector('.icon').innerHTML = '<span class="loading-spinner" style="font-size:10px;">⏳</span>';
+                item.querySelector('.icon').innerHTML = '<span class="loading-spinner" class="sidebar-spinner">⏳</span>';
                 try {
                   await buildTree(entry, childrenContainer, fullPath);
                 } finally {
@@ -752,7 +755,7 @@ export const SidebarManager = {
           // Restore open state
           if (openFolders.has(fullPath)) {
             childrenContainer.classList.add('open');
-            item.querySelector('.icon').innerHTML = '<span class="loading-spinner" style="font-size:10px;">⏳</span>';
+            item.querySelector('.icon').innerHTML = '<span class="loading-spinner" class="sidebar-spinner">⏳</span>';
             try {
               await buildTree(entry, childrenContainer, fullPath);
             } finally {
@@ -764,7 +767,7 @@ export const SidebarManager = {
     };
     
     const root = document.createElement('div');
-    root.style.padding = '5px 0';
+    root.className = 'sidebar-tree';
     await buildTree(this.workspaceHandle, root);
     container.appendChild(root);
   },

@@ -7,7 +7,7 @@ export const RepeaterPanel = {
 
   renderSidebar(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary);">
+      <div class="panel-container">
         
         <!-- TARGET -->
         <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">

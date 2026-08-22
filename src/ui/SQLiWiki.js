@@ -12,7 +12,7 @@ export const SQLiWiki = {
   
   renderSidebar(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 0;">
+      <div class="panel-container">
         <input type="text" id="sqli-search" placeholder="Search engine (e.g. MySQL)..." style="margin: 5px; padding: 5px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none;">
         <div id="sqli-list" style="flex: 1; overflow-y: auto; padding: 5px;"></div>
       </div>

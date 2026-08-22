@@ -9,17 +9,20 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@vitest/coverage-v8": "^4.1.11",
     "gh-pages": "^6.3.0",
     "http-server": "^14.1.1",
     "js-yaml": "^5.2.3",
     "jsdom": "^29.1.1",
     "playwright": "^1.62.1",
     "serve-handler": "^6.1.7",
-    "vite": "^8.2.0"
+    "typescript": "^7.0.2",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "crypto-js": "^4.2.0",
-    "firebase": "^12.17.0",
     "lucide": "^1.28.0",
     "marked": "^18.0.7",
     "monaco-editor": "^0.44.0",

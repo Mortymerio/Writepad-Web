@@ -9,11 +9,11 @@ export const HashCrackerPanel = {
   
   renderSidebar(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary);">
-        <div style="margin-bottom: 10px;">
-          <label style="font-size: 0.8em; font-weight: bold;">Paste Hash:</label>
+      <div class="panel-container">
+        <div class="panel-group">
+          <label class="panel-label">Paste Hash:</label>
           <textarea id="hash-input" placeholder="e.g. 5d41402abc4b2a76b9719d911017c592" style="width: 100%; height: 80px; box-sizing: border-box; margin-top: 5px; padding: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none; resize: vertical; font-family: monospace; font-size: 0.9em;"></textarea>
-          <button id="hash-btn-selection" style="margin-top: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); cursor: pointer; padding: 4px; border-radius: 4px; font-size: 0.8em; width: 100%;">Get Editor Selection</button>
+          <button id="hash-btn-selection" class="panel-btn" style="background:var(--bg-secondary); color:var(--text-primary);">Get Editor Selection</button>
         </div>
         
         <div id="hash-results" style="flex: 1; overflow-y: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">

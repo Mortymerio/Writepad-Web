@@ -7,8 +7,8 @@ export const ObfuscatorPanel = {
 
   renderSidebar(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary); overflow-y: auto;">
-        <div style="margin-bottom: 10px;">
+      <div class="panel-container">
+        <div class="panel-group">
           <h3 style="margin: 0 0 5px 0; font-size: 1.1em; color: var(--accent);">Payload Obfuscator</h3>
           <p style="margin: 0; font-size: 0.8em; color: var(--text-status);">Bypass WAFs and filters.</p>
         </div>

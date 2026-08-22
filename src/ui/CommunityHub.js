@@ -51,30 +51,31 @@ export const CommunityHub = {
 
   async render(container, onImport) {
     container.innerHTML = "";
+    container.className = "hub-container";
     
     const header = document.createElement("div");
-    header.style.cssText = "padding: 15px; border-bottom: 1px solid #30363d; background: #0d1117;";
+    header.className = "hub-header";
     header.innerHTML = `
-      <h3 style="margin: 0; color: #58a6ff; display: flex; align-items: center; gap: 8px;">
-        🌐 Hub Comunitario (Oficial)
-      </h3>
-      <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #8b949e;">
+      <div class="hub-header__top">
+        <h3 class="hub-header__title">🌐 Hub Comunitario (Oficial)</h3>
+      </div>
+      <p style="margin: 0; font-size: 0.85em; color: var(--text-secondary);">
         Agentes verificados alojados en el repositorio oficial de GitHub.
       </p>
     `;
     container.appendChild(header);
 
     const list = document.createElement("div");
-    list.style.cssText = "flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 15px;";
+    list.className = "hub-list";
     container.appendChild(list);
 
-    list.innerHTML = "<div style=\"padding:20px; color:#8b949e; text-align:center;\">Cargando agentes de GitHub...</div>";
+    list.innerHTML = "<div class='hub-loading'>Cargando agentes de GitHub...</div>";
 
     let registry = [];
     try {
       registry = await this.getRegistry();
     } catch(e) {
-      list.innerHTML = "<div style=\"padding:20px; color:#f85149; text-align:center;\">Error al cargar el Hub. Asegurate de tener conexión.</div>";
+      list.innerHTML = "<div class='hub-loading' style='color: var(--danger);'>Error al cargar el Hub. Asegurate de tener conexión.</div>";
       return;
     }
     
@@ -82,19 +83,17 @@ export const CommunityHub = {
 
     for (const agent of registry) {
       const card = document.createElement("div");
-      card.style.cssText = "background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: border-color 0.2s;";
-      card.onmouseover = () => card.style.borderColor = "#8b949e";
-      card.onmouseout = () => card.style.borderColor = "#30363d";
+      card.className = "hub-card";
 
       const topRow = document.createElement("div");
-      topRow.style.cssText = "display: flex; justify-content: space-between; align-items: center;";
+      topRow.className = "hub-card__header";
       topRow.innerHTML = `
-        <div style="font-weight: bold; color: #c9d1d9;">${agent.name} <span style="font-size:0.8em; font-weight:normal; color:#8b949e;">by @${agent.author}</span></div>
-        <div style="font-size: 0.8em; background: rgba(56, 139, 253, 0.15); color: #58a6ff; padding: 2px 6px; border-radius: 10px;">${agent.model}</div>
+        <div class="hub-card__name">${agent.name} <span class="hub-card__author">by @${agent.author}</span></div>
+        <div class="hub-card__badge">${agent.model}</div>
       `;
 
       const desc = document.createElement("div");
-      desc.style.cssText = "font-size: 0.9em; color: #c9d1d9;";
+      desc.className = "hub-card__desc";
       desc.innerText = agent.description;
 
       const toolsDiv = document.createElement("div");
@@ -126,77 +125,77 @@ export const CommunityHub = {
 
     modal.style.display = 'flex';
     modal.innerHTML = `
-      <div class="modal-content" style="width: 700px; max-width: 95vw; height: 85vh; background: #0d1117; border: 1px solid #444; border-radius: 8px; color: #c9d1d9; display: flex; justify-content: center; align-items: center;">
-        <h3 style="color: #8b949e;">Conectando con GitHub...</h3>
+      <div class="modal-content hub-modal">
+        <h3>Conectando con GitHub...</h3>
       </div>
     `;
 
     const stats = await this.getIssueData(agent.issue_number);
     
-    let toolsHtml = (agent.tools || []).map(t => `<span style="background: rgba(210, 168, 255, 0.1); color: #d2a8ff; border: 1px solid rgba(210, 168, 255, 0.4); padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-family: monospace;">${t}</span>`).join('');
-    if (!toolsHtml) toolsHtml = '<span style="color:#8b949e; font-style:italic;">Ninguna</span>';
+    let toolsHtml = (agent.tools || []).map(t => `<span class="hub-tool-badge">${t}</span>`).join('');
+    if (!toolsHtml) toolsHtml = '<span class="text-muted">Ninguna</span>';
 
     const initialTaskHtml = agent.initialPrompt ? `
       <div>
-        <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">Initial Task</h4>
-        <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #7ee787;">${agent.initialPrompt}</pre>
+        <h4>Initial Task</h4>
+        <pre class="hub-code-block">${agent.initialPrompt}</pre>
       </div>
     ` : '';
 
     const discussHtml = agent.issue_number ? `
-      <button id="btn-gh-discuss" style="padding: 10px 20px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+      <button id="btn-gh-discuss" class="hub-btn hub-btn--secondary">
          Abrir Hilo de Discusión (#${agent.issue_number})
       </button>
     ` : `
-      <p style="color: #ff7b72; font-size: 0.9em;">Este agente oficial no tiene un hilo de discusión vinculado.</p>
+      <p class="text-danger">Este agente oficial no tiene un hilo de discusión vinculado.</p>
     `;
 
     modal.innerHTML = `
-      <div class="modal-content" style="width: 700px; max-width: 95vw; height: 85vh; background: #0d1117; border: 1px solid #444; border-radius: 8px; color: #c9d1d9; display: flex; flex-direction: column;">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #30363d; background: #161b22; border-radius: 8px 8px 0 0;">
+      <div class="modal-content hub-modal">
+        <div class="modal-header">
           <div>
-            <h3 style="margin: 0; color: #58a6ff;">${agent.name}</h3>
-            <span style="font-size: 0.85em; color: #8b949e;">by @${agent.author}</span>
+            <h3>${agent.name}</h3>
+            <span class="text-muted">by @${agent.author}</span>
           </div>
-          <button id="btn-close-hub-details" style="background: transparent; border: none; color: #8b949e; font-size: 1.5em; cursor: pointer;">&times;</button>
+          <button id="btn-close-hub-details" class="close-btn">&times;</button>
         </div>
         
-        <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+        <div class="modal-body hub-modal__body">
           
-          <div style="background: rgba(248, 81, 73, 0.1); border-left: 4px solid #f85149; padding: 10px; border-radius: 4px;">
-            <strong style="color: #ff7b72;">Advertencia de Seguridad:</strong> Asegúrese de que no contenga instrucciones maliciosas. Este agente se importará forzosamente en modo Ask.
+          <div class="alert alert-danger">
+            <strong>Advertencia de Seguridad:</strong> Asegúrese de que no contenga instrucciones maliciosas. Este agente se importará forzosamente en modo Ask.
           </div>
 
           <div>
-            <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">Herramientas (Permisos Solicitados)</h4>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <h4>Herramientas (Permisos Solicitados)</h4>
+            <div class="flex-wrap">
               ${toolsHtml}
             </div>
           </div>
 
           <div>
-            <h4 style="margin: 0 0 8px 0; color: #c9d1d9;">System Prompt</h4>
-            <pre style="background: #161b22; padding: 15px; border-radius: 6px; border: 1px solid #30363d; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; color: #a5d6ff;">${agent.systemPrompt}</pre>
+            <h4>System Prompt</h4>
+            <pre class="hub-code-block">${agent.systemPrompt}</pre>
           </div>
 
           ${initialTaskHtml}
 
-          <div style="display: flex; gap: 10px;">
-            <button id="btn-import-agent" style="flex: 2; padding: 10px; background: #238636; border: none; color: white; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+          <div class="flex-row">
+            <button id="btn-import-agent" class="hub-btn hub-btn--primary">
               ⬇️ Importar a Local (Forzar Ask)
             </button>
           </div>
 
-          <hr style="border: none; border-top: 1px solid #30363d; width: 100%; margin: 10px 0;">
+          <hr class="hub-divider">
 
           <div>
-            <h4 style="margin: 0 0 15px 0; color: #c9d1d9; display:flex; justify-content:space-between;">
+            <h4 class="flex-between">
               <span>Comunidad de GitHub</span>
-              <span style="font-size:0.8em; color:#8b949e;">${stats.votes} 👍 | ${stats.comments} 💬</span>
+              <span class="text-muted">${stats.votes} 👍 | ${stats.comments} 💬</span>
             </h4>
             
-            <div style="background: #161b22; padding: 20px; border-radius: 6px; border: 1px solid #30363d; text-align: center;">
-              <p style="color: #8b949e; margin-bottom: 15px;">Los comentarios y votos se administran en el repositorio oficial de GitHub para garantizar la seguridad y evitar spam.</p>
+            <div class="hub-discussion-box">
+              <p class="text-muted">Los comentarios y votos se administran en el repositorio oficial de GitHub para garantizar la seguridad y evitar spam.</p>
               ${discussHtml}
             </div>
           </div>
@@ -228,8 +227,6 @@ export const CommunityHub = {
 
     const discussBtn = document.getElementById('btn-gh-discuss');
     if (discussBtn) {
-      discussBtn.onmouseover = () => discussBtn.style.background = '#30363d';
-      discussBtn.onmouseout = () => discussBtn.style.background = '#21262d';
       discussBtn.onclick = () => {
         window.open(this.repoIssuesUrl + "/" + agent.issue_number, '_blank');
       };

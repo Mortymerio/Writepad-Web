@@ -7,16 +7,16 @@ export const EncoderPanel = {
   
   renderSidebar(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary);">
-        <div style="margin-bottom: 10px;">
-          <label style="font-size: 0.8em; font-weight: bold;">Input:</label>
-          <textarea id="encoder-input" style="width: 100%; height: 100px; box-sizing: border-box; margin-top: 5px; padding: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none; resize: vertical; font-family: monospace; font-size: 0.9em;"></textarea>
-          <button id="encoder-btn-selection" style="margin-top: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); cursor: pointer; padding: 4px; border-radius: 4px; font-size: 0.8em; width: 100%;">Get Editor Selection</button>
+      <div class="panel-container">
+        <div class="panel-group">
+          <label class="panel-label">Input:</label>
+          <textarea id="encoder-input" class="panel-input panel-textarea"></textarea>
+          <button id="encoder-btn-selection" class="panel-btn" style="background:var(--bg-secondary); color:var(--text-primary);">Get Editor Selection</button>
         </div>
         
-        <div style="margin-bottom: 10px;">
-          <label style="font-size: 0.8em; font-weight: bold;">Operation:</label>
-          <select id="encoder-operation" style="width: 100%; box-sizing: border-box; margin-top: 5px; padding: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none; font-size: 0.9em;">
+        <div class="panel-group">
+          <label class="panel-label">Operation:</label>
+          <select id="encoder-operation" class="panel-select">
             <option value="b64-enc">Base64 Encode</option>
             <option value="b64-dec">Base64 Decode</option>
             <option value="url-enc">URL Encode</option>
@@ -29,10 +29,10 @@ export const EncoderPanel = {
           </select>
         </div>
         
-        <div style="margin-bottom: 10px; flex: 1; display: flex; flex-direction: column;">
-          <label style="font-size: 0.8em; font-weight: bold;">Output:</label>
-          <textarea id="encoder-output" readonly style="width: 100%; flex: 1; box-sizing: border-box; margin-top: 5px; padding: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none; resize: none; font-family: monospace; font-size: 0.9em;"></textarea>
-          <button id="encoder-btn-insert" style="margin-top: 5px; background: #238636; color: white; border: none; cursor: pointer; padding: 6px; border-radius: 4px; font-size: 0.9em; width: 100%; font-weight: bold;">Insert at Cursor</button>
+        <div class="panel-group" style="flex:1">
+          <label class="panel-label">Output:</label>
+          <textarea id="encoder-output" readonly class="panel-output-box"></textarea>
+          <button id="encoder-btn-insert" class="panel-btn">Insert at Cursor</button>
         </div>
       </div>
     `;

@@ -1,4 +1,6 @@
-export const DEFAULT_AGENTS = [
+import { Agent } from '../types/agent';
+
+export const DEFAULT_AGENTS: Agent[] = [
   {
     id: 'architect',
     name: 'Architect',
@@ -29,32 +31,36 @@ export const DEFAULT_AGENTS = [
 ];
 
 export class AgentStore {
-  static getStorageKey() {
+  static getStorageKey(): string {
     return 'writepad_agents';
   }
 
-  static listAgents() {
+  static listAgents(): Agent[] {
     const raw = localStorage.getItem(this.getStorageKey());
     if (!raw) {
       this.initDefaultAgents();
-      return DEFAULT_AGENTS;
+      return [...DEFAULT_AGENTS];
     }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [...DEFAULT_AGENTS];
+      return parsed as Agent[];
     } catch (e) {
       console.error('Failed to parse agents from localStorage', e);
-      return DEFAULT_AGENTS;
+      return [...DEFAULT_AGENTS];
     }
   }
 
-  static initDefaultAgents() {
+  static initDefaultAgents(): void {
     localStorage.setItem(this.getStorageKey(), JSON.stringify(DEFAULT_AGENTS));
   }
 
-  static saveAgent(agent) {
+  static saveAgent(agent: Agent): Agent {
     const agents = this.listAgents();
     if (!agent.id) {
-      agent.id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+      agent.id = (window.crypto && window.crypto.randomUUID) 
+        ? window.crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 15);
     }
     
     const idx = agents.findIndex(a => a.id === agent.id);
@@ -68,7 +74,7 @@ export class AgentStore {
     return agent;
   }
 
-  static deleteAgent(id) {
+  static deleteAgent(id: string): void {
     let agents = this.listAgents();
     agents = agents.filter(a => a.id !== id);
     localStorage.setItem(this.getStorageKey(), JSON.stringify(agents));

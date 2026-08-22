@@ -1,7 +1,29 @@
 import { AIService } from '../aiService.js';
 import { TOOL_REGISTRY, executeTool } from './AgentTools.js';
+import { EventBus } from './EventBus.js';
+import { AgentLogger } from './AgentLogger.js';
 
 const MAX_ITERATIONS = 10;
+const MAX_CONTEXT_TOKENS = 100_000;
+const ITERATION_TIMEOUT_MS = 60_000;
+const MAX_CONSECUTIVE_FAILURES = 3;
+
+function estimateTokens(messages) {
+  return messages.reduce((sum, m) => sum + Math.ceil((m.content || '').length / 4), 0);
+}
+
+function trimConversationHistory(messages) {
+  let totalTokens = estimateTokens(messages);
+  while (totalTokens > MAX_CONTEXT_TOKENS && messages.length > 2) {
+    // Keep system prompt (index 0) and try to remove oldest messages
+    let removeIndex = messages[0].role === 'system' ? 1 : 0;
+    // Don't remove the very last message
+    if (removeIndex >= messages.length - 1) break;
+    messages.splice(removeIndex, 1);
+    totalTokens = estimateTokens(messages);
+  }
+  return messages;
+}
 
 function buildToolDefinitions() {
   return TOOL_REGISTRY.map(t => {
@@ -45,7 +67,6 @@ ${toolDefs}
 export function extractToolCalls(content) {
   const toolCalls = [];
   
-  // Support the new XML format for multiple calls
   const xmlRegex = /<action\s+name="([^"]+)">([\s\S]*?)<\/action>/g;
   let xmlMatch;
   while ((xmlMatch = xmlRegex.exec(content)) !== null) {
@@ -77,7 +98,6 @@ export function extractToolCalls(content) {
 
   if (toolCalls.length > 0) return toolCalls;
 
-  // Fallback for old JSON format in case it still generates it (only extracts the first one)
   const match = content.match(/```action\s*\n([\s\S]*?)\n```/);
   if (match && match[1]) {
     try {
@@ -92,31 +112,40 @@ export function extractToolCalls(content) {
     }
   }
 
+  // Simplified fallback
+  const simpleXmlRegex = /<action><title>([^<]+)<\/title><\/action>/g;
+  let simpleMatch;
+  while ((simpleMatch = simpleXmlRegex.exec(content)) !== null) {
+    toolCalls.push({
+      id: ((window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36)),
+      name: simpleMatch[1],
+      arguments: {}
+    });
+  }
+
   return toolCalls;
 }
 
-// Simple event emitter implementation for browser
-class EventEmitter {
-  constructor() {
+export class AgentOrchestrator {
+  constructor(editor) {
+    this.editor = editor;
+    this.pendingApprovals = new Map();
+    this.abortController = null;
+    this.failureCounter = {};
+    // Emulate Event Emitter for AgentPanel component using this locally
     this.listeners = {};
   }
+
+  // Local emitter for UI components relying on it (like AgentPanel)
   on(event, cb) {
     if (!this.listeners[event]) this.listeners[event] = [];
     this.listeners[event].push(cb);
   }
-  emit(event, data) {
+
+  emitLocal(event, data) {
     if (this.listeners[event]) {
       this.listeners[event].forEach(cb => cb(data));
     }
-  }
-}
-
-export class AgentOrchestrator extends EventEmitter {
-  constructor(editor) {
-    super();
-    this.editor = editor;
-    this.pendingApprovals = new Map();
-    this.abortController = null;
   }
 
   abort() {
@@ -143,13 +172,10 @@ export class AgentOrchestrator extends EventEmitter {
     });
   }
 
-  // Wraps AIService.generateCompletion to support streaming if possible, 
-  // or falls back to non-streaming if AIService doesn't support it natively yet.
   async *streamLLM(model, messages, signal, systemPrompt) {
     const apiKey = AIService.getApiKey();
     if (!apiKey) throw new Error("API Key not configured.");
     
-    // We rewrite the Gemini API call to support proper streaming (SSE)
     const contents = messages.filter(m => m.role !== 'system').map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }]
@@ -162,69 +188,75 @@ export class AgentOrchestrator extends EventEmitter {
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`;
     
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal
-    });
+    const timeoutController = new AbortController();
+    const timer = setTimeout(() => timeoutController.abort(), ITERATION_TIMEOUT_MS);
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Gemini API Error (${res.status}): ${errText}`);
+    // Combine signal from user and timeout
+    const combinedSignal = signal.aborted ? signal : timeoutController.signal;
+    if (!signal.aborted) {
+      signal.addEventListener('abort', () => timeoutController.abort());
     }
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let partial = '';
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: combinedSignal
+      });
 
-    const processEvent = function*(eventStr) {
-      const dataMatch = eventStr.match(/^data:\s*(.*)/s);
-      if (!dataMatch) return;
-      
-      const json = dataMatch[1].trim();
-      if (!json || json === '[DONE]') {
-        yield { delta: '', done: true };
-        return;
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Gemini API Error (${res.status}): ${errText}`);
       }
-      try {
-        const parsed = JSON.parse(json);
-        const cand = parsed.candidates?.[0];
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let partial = '';
+
+      const processEvent = function*(eventStr) {
+        const dataMatch = eventStr.match(/^data:\s*(.*)/s);
+        if (!dataMatch) return;
         
-        if (cand && cand.finishReason && cand.finishReason !== 'STOP') {
-          // If the model was blocked or encountered an API error, yield it so the user knows why it stopped
-          yield { delta: `\n[Agent stopped: ${cand.finishReason} - ${cand.finishMessage || ''}]\n`, done: false };
+        const json = dataMatch[1].trim();
+        if (!json || json === '[DONE]') {
+          yield { delta: '', done: true };
+          return;
         }
+        try {
+          const parsed = JSON.parse(json);
+          const cand = parsed.candidates?.[0];
+          
+          if (cand && cand.finishReason && cand.finishReason !== 'STOP') {
+            yield { delta: `\n[Agent stopped: ${cand.finishReason} - ${cand.finishMessage || ''}]\n`, done: false };
+          }
 
-        const text = cand?.content?.parts?.[0]?.text || '';
-        if (text) yield { delta: text, done: false };
-      } catch(e) {
-         // ignore parse errors for partial chunks
+          const text = cand?.content?.parts?.[0]?.text || '';
+          if (text) yield { delta: text, done: false };
+        } catch(e) { }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        partial += decoder.decode(value, { stream: true });
+        const parts = partial.split(/\r?\n\r?\n/);
+        partial = parts.pop() || ''; 
+
+        for (const event of parts) {
+          if (event.trim() === '') continue;
+          yield* processEvent(event.trim());
+        }
       }
-    };
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      partial += decoder.decode(value, { stream: true });
-      
-      // SSE events can be separated by \r\n\r\n or \n\n
-      const parts = partial.split(/\r?\n\r?\n/);
-      partial = parts.pop() || ''; // Keep the last incomplete chunk
-
-      for (const event of parts) {
-        if (event.trim() === '') continue;
-        yield* processEvent(event.trim());
+      if (partial.trim() !== '') {
+        yield* processEvent(partial.trim());
       }
+      yield { delta: '', done: true };
+    } finally {
+      clearTimeout(timer);
     }
-
-    // Process anything left in partial after stream ends
-    if (partial.trim() !== '') {
-      yield* processEvent(partial.trim());
-    }
-
-    yield { delta: '', done: true };
   }
 
   async run(agent, userMessage) {
@@ -232,16 +264,23 @@ export class AgentOrchestrator extends EventEmitter {
     const signal = this.abortController.signal;
     const allowedTools = new Set(agent.tools || []);
     
+    EventBus.emit('AGENT_STARTED', { agentId: agent.id || 'unknown' });
+    this.emitLocal('started', {});
+    
     const systemPrompt = buildSystemPromptWithTools(agent.systemPrompt, agent.tools || []);
-    const messages = [
+    let messages = [
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage }
     ];
 
     let iterations = 0;
+    this.failureCounter = {};
 
     while (iterations < MAX_ITERATIONS) {
       if (signal.aborted) break;
       iterations++;
+
+      messages = trimConversationHistory(messages);
 
       let fullContent = '';
       try {
@@ -249,17 +288,20 @@ export class AgentOrchestrator extends EventEmitter {
         for await (const chunk of stream) {
           if (signal.aborted) break;
           fullContent += chunk.delta;
-          this.emit('chunk', { delta: chunk.delta });
+          this.emitLocal('chunk', { delta: chunk.delta });
         }
       } catch (err) {
+        let msg = String(err.message || err);
         if (err.name === 'AbortError') {
-          this.emit('error', { message: 'Agent execution aborted by user.' });
-        } else {
-          this.emit('error', { message: String(err.message || err) });
+          msg = 'Agent execution aborted by user or timeout.';
         }
+        this.emitLocal('error', { message: msg });
+        EventBus.emit('AGENT_ERROR', { agentId: agent.id || 'unknown', error: msg });
+        AgentLogger.log(agent.id || 'unknown', { type: 'error', data: { message: msg } });
         return;
       }
 
+      AgentLogger.log(agent.id || 'unknown', { type: 'llm_response', data: { content: fullContent } });
       messages.push({ role: 'assistant', content: fullContent });
 
       let toolCalls = [];
@@ -275,13 +317,17 @@ export class AgentOrchestrator extends EventEmitter {
       }
 
       if (!toolCalls || toolCalls.length === 0) {
-        this.emit('done', { content: fullContent });
+        this.emitLocal('done', { content: fullContent });
+        EventBus.emit('AGENT_COMPLETED', { agentId: agent.id || 'unknown' });
         return;
       }
 
       let allResultsText = [];
 
       for (const toolCall of toolCalls) {
+        EventBus.emit('AGENT_TOOL_CALL', { agentId: agent.id || 'unknown', tool: toolCall.name, args: toolCall.arguments });
+        AgentLogger.log(agent.id || 'unknown', { type: 'tool_call', data: { tool: toolCall.name, args: toolCall.arguments } });
+
         if (!allowedTools.has(toolCall.name)) {
           const result = {
             id: toolCall.id,
@@ -289,13 +335,13 @@ export class AgentOrchestrator extends EventEmitter {
             result: '',
             error: `Tool '${toolCall.name}' is not enabled for this agent`
           };
-          this.emit('tool_call', toolCall);
-          this.emit('tool_result', result);
+          this.emitLocal('tool_call', toolCall);
+          this.emitLocal('tool_result', result);
           allResultsText.push(`Tool result for ${toolCall.name}: ${result.error}`);
           continue;
         }
 
-        this.emit('tool_call', toolCall);
+        this.emitLocal('tool_call', toolCall);
 
         if (agent.autonomy === 'ask') {
           const approved = await this.waitForApproval(toolCall.id, signal);
@@ -306,7 +352,7 @@ export class AgentOrchestrator extends EventEmitter {
               result: '',
               error: 'Tool call rejected by user'
             };
-            this.emit('tool_result', result);
+            this.emitLocal('tool_result', result);
             allResultsText.push(`Tool result for ${toolCall.name}: Rejected by user`);
             continue;
           }
@@ -314,9 +360,20 @@ export class AgentOrchestrator extends EventEmitter {
 
         let toolResultContent = '';
         try {
-          toolResultContent = await executeTool(toolCall.name, toolCall.arguments, this.context || { editor: window.editor });
+          // Fallback globally is removed to enforce context passing
+          toolResultContent = await executeTool(toolCall.name, toolCall.arguments, this.context || { editor: this.editor });
+          this.failureCounter[toolCall.name] = 0; // Reset on success
         } catch (err) {
           toolResultContent = `Error: ${err.message || String(err)}`;
+          this.failureCounter[toolCall.name] = (this.failureCounter[toolCall.name] || 0) + 1;
+          
+          if (this.failureCounter[toolCall.name] >= MAX_CONSECUTIVE_FAILURES) {
+             const cbError = `Circuit breaker activated for tool '${toolCall.name}' after ${MAX_CONSECUTIVE_FAILURES} consecutive failures.`;
+             EventBus.emit('AGENT_ERROR', { agentId: agent.id || 'unknown', error: cbError });
+             AgentLogger.log(agent.id || 'unknown', { type: 'circuit_break', data: { tool: toolCall.name, error: toolResultContent } });
+             this.emitLocal('error', { message: cbError });
+             return;
+          }
         }
 
         const result = {
@@ -324,7 +381,9 @@ export class AgentOrchestrator extends EventEmitter {
           name: toolCall.name,
           result: toolResultContent
         };
-        this.emit('tool_result', result);
+        
+        AgentLogger.log(agent.id || 'unknown', { type: 'tool_result', data: { tool: toolCall.name, result: toolResultContent } });
+        this.emitLocal('tool_result', result);
         allResultsText.push(`Tool result for ${toolCall.name}:\n${toolResultContent}`);
       }
 
@@ -332,7 +391,9 @@ export class AgentOrchestrator extends EventEmitter {
     }
 
     if (iterations >= MAX_ITERATIONS) {
-      this.emit('error', { message: `Max iterations (${MAX_ITERATIONS}) reached.` });
+      const msg = `Max iterations (${MAX_ITERATIONS}) reached.`;
+      this.emitLocal('error', { message: msg });
+      EventBus.emit('AGENT_ERROR', { agentId: agent.id || 'unknown', error: msg });
     }
   }
 }

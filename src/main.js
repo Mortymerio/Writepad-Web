@@ -1,4 +1,5 @@
 import './style.css';
+import './styles/index.css';
 import * as monaco from 'monaco-editor';
 
 // GLOBAL ERROR CATCHER FOR DEBUGGING

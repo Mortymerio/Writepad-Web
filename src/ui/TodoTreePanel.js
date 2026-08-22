@@ -10,7 +10,7 @@ export const TodoTreePanel = {
   renderSidebar(container) {
     this.container = container;
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+      <div class="panel-container">
         <div style="padding: 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-light); font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
           <span>TODO Tree</span>
           <button id="btn-refresh-todo" style="background: none; border: none; cursor: pointer; color: var(--text-primary);"><i data-lucide="refresh-cw" width="14" height="14"></i></button>

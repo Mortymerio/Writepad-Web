@@ -22,7 +22,7 @@ export const LFIWiki = {
   
   renderSidebar(container) {
     container.innerHTML = `
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 0;">
+      <div class="panel-container">
         <div style="padding: 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
           <input type="text" id="lfi-search" placeholder="Search payloads..." style="width: 100%; box-sizing: border-box; padding: 6px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none; border-radius: 4px;">
         </div>
