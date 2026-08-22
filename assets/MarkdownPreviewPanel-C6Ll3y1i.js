@@ -1,4 +1,4 @@
-import{r as e}from"./index-DyLEP9nV.js";var t={callbacks:{},container:null,disposable:null,init(e){this.callbacks=e},renderSidebar(e){this.container=e,e.innerHTML=`
+import{r as e}from"./index-DsKQy-XJ.js";var t={callbacks:{},container:null,disposable:null,init(e){this.callbacks=e},renderSidebar(e){this.container=e,e.innerHTML=`
       <div style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary);">
         <div style="padding: 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-light); font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
           <span>Markdown Preview</span>
@@ -8,7 +8,7 @@ import{r as e}from"./index-DyLEP9nV.js";var t={callbacks:{},container:null,dispo
           <i>Loading preview...</i>
         </div>
       </div>
-    `,this.updatePreview();let t=this.callbacks.getEditor();this.disposable&&this.disposable.dispose(),this.disposable=t.onDidChangeModelContent(()=>{this.updatePreview()})},updatePreview(){if(!this.container)return;let t=this.callbacks.getEditor(),n=document.getElementById(`md-preview-content`);if(!n)return;let r=this.callbacks.getActiveTabIndex(),i=this.callbacks.getTabs();if(r===-1){n.innerHTML=`<i>No active document.</i>`;return}let a=i[r];if(!a.filename||!a.filename.toLowerCase().endsWith(`.md`)){n.innerHTML=`<i>Active document is not a Markdown file (.md).</i>`;return}let o=t.getValue();try{n.innerHTML=e.parse(o);let t=document.createElement(`style`);t.innerHTML=`
+    `,this.updatePreview();let t=this.callbacks.getEditor();this.disposable&&this.disposable.dispose(),this.disposable=t.onDidChangeModelContent(()=>{this.updatePreview()})},updatePreview(){if(!this.container)return;let t=this.callbacks.getEditor(),n=document.getElementById(`md-preview-content`);if(!n)return;let r=this.callbacks.getActiveTabIndex(),i=this.callbacks.getTabs();if(r===-1){n.innerHTML=`<i>No active document.</i>`;return}let a=i[r];if(!a.title||!a.title.toLowerCase().endsWith(`.md`)){n.innerHTML=`<i>Active document is not a Markdown file (.md).</i>`;return}let o=t.getValue();try{n.innerHTML=e.parse(o);let t=document.createElement(`style`);t.innerHTML=`
         #md-preview-content h1, #md-preview-content h2, #md-preview-content h3 { border-bottom: 1px solid var(--border-light); padding-bottom: 5px; }
         #md-preview-content code { background: var(--bg-secondary); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
         #md-preview-content pre { background: var(--bg-secondary); padding: 10px; border-radius: 4px; overflow-x: auto; font-family: monospace; }
