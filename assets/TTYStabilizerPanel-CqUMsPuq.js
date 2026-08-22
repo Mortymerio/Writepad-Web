@@ -1,5 +1,5 @@
 var e={callbacks:{},init(e){this.callbacks=e},renderSidebar(e){e.innerHTML=`
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary); overflow-y: auto;">
+      <div class="panel-container">
         <div style="margin-bottom: 15px;">
           <h3 style="margin: 0 0 5px 0; font-size: 1.1em; color: var(--accent);">TTY Shell Stabilizer</h3>
           <p style="margin: 0; font-size: 0.8em; color: var(--text-status);">Follow these steps to upgrade a dumb reverse shell into a fully interactive TTY.</p>

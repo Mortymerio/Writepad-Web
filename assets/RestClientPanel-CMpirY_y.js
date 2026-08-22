@@ -1,5 +1,5 @@
 var e={callbacks:{},init(e){this.callbacks=e},renderSidebar(e){e.innerHTML=`
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary);">
+      <div class="panel-container">
         <div style="margin-bottom: 10px; display: flex; gap: 5px;">
           <select id="rest-method" style="padding: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none;">
             <option>GET</option>
@@ -14,12 +14,12 @@ var e={callbacks:{},init(e){this.callbacks=e},renderSidebar(e){e.innerHTML=`
           <button id="rest-btn-send" style="padding: 5px 10px; background: var(--bg-active); color: var(--text-primary); border: 1px solid var(--border-color); cursor: pointer; font-weight: bold;">Send</button>
         </div>
         
-        <div style="margin-bottom: 10px;">
+        <div class="panel-group">
           <label style="font-size: 0.8em; font-weight: bold; cursor: pointer;" id="rest-headers-toggle">▶ Headers (JSON)</label>
           <textarea id="rest-headers" placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}' style="display: none; width: 100%; height: 80px; box-sizing: border-box; margin-top: 5px; padding: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none; resize: vertical; font-family: monospace; font-size: 0.9em;"></textarea>
         </div>
 
-        <div style="margin-bottom: 10px;">
+        <div class="panel-group">
           <label style="font-size: 0.8em; font-weight: bold; cursor: pointer;" id="rest-body-toggle">▶ Body</label>
           <textarea id="rest-body" placeholder="Raw body data..." style="display: none; width: 100%; height: 100px; box-sizing: border-box; margin-top: 5px; padding: 5px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); outline: none; resize: vertical; font-family: monospace; font-size: 0.9em;"></textarea>
         </div>

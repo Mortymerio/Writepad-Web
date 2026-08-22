@@ -1,5 +1,5 @@
 var e={callbacks:{},container:null,decorations:[],init(e){this.callbacks=e},renderSidebar(e){this.container=e,e.innerHTML=`
-      <div style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary); padding: 10px;">
+      <div class="panel-container">
         <label style="font-weight: bold; margin-bottom: 5px;">Regex Pattern:</label>
         <div style="display: flex; gap: 5px; margin-bottom: 10px;">
           <span style="padding: 5px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-right: none; color: var(--text-secondary);">/</span>

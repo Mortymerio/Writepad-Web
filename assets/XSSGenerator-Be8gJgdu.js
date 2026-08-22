@@ -1,5 +1,5 @@
 var e=[{category:`Polyglots`,items:[`Ij4+PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==`,`JyI7IS09PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+`,`amF2YXNjcmlwdDovLyUyNTBBYWxlcnQoMSk=`]},{category:`Basic Injection`,items:[`PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==`,`PGltZyBzcmM9eCBvbmVycm9yPWFsZXJ0KDEpPg==`,`PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+`,`PGJvZHkgb25sb2FkPWFsZXJ0KDEpPg==`]}],t={callbacks:{},payload:`alert(1)`,init(e){this.callbacks=e},insertPayload(e){let t=this.callbacks.getEditor();if(!t)return;let n=t.getSelection();t.executeEdits(`xss-generator`,[{range:n,text:e,forceMoveMarkers:!0}]),t.focus()},renderSidebar(e){e.innerHTML=`
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 0;">
+      <div class="panel-container">
         <div style="padding: 10px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
           <div style="margin-bottom: 5px;">
             <label style="font-size: 0.8em; color: var(--text-primary); font-weight: bold;">Inner JS Payload:</label>

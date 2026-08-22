@@ -1,6 +1,6 @@
 var e={callbacks:{},pipeline:[],operations:{B64Enc:e=>btoa(e),B64Dec:e=>atob(e),URLEnc:e=>encodeURIComponent(e),URLDec:e=>decodeURIComponent(e),HexEnc:e=>Array.from(e).map(e=>e.charCodeAt(0).toString(16).padStart(2,`0`)).join(``),HexDec:e=>{let t=e.replace(/\\s/g,``),n=``;for(let e=0;e<t.length;e+=2)n+=String.fromCharCode(parseInt(t.substr(e,2),16));return n},"HTML Enc":e=>e.replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`),"HTML Dec":e=>{let t=document.createElement(`textarea`);return t.innerHTML=e,t.value}},init(e){this.callbacks=e,this.pipeline=[]},renderSidebar(e){e.innerHTML=`
-      <div style="display: flex; flex-direction: column; height: 100%; padding: 10px; box-sizing: border-box; background: var(--bg-primary); color: var(--text-primary);">
-        <div style="margin-bottom: 10px;">
+      <div class="panel-container">
+        <div class="panel-group">
           <h3 style="margin: 0 0 5px 0; font-size: 1.1em; color: var(--accent);">Recipe Pipeline</h3>
           <p style="margin: 0; font-size: 0.8em; color: var(--text-status);">Chain encoding/decoding operations (CyberChef style).</p>
         </div>
