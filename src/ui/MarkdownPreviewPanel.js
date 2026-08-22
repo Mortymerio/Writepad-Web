@@ -50,7 +50,7 @@ export const MarkdownPreviewPanel = {
     }
 
     const currentTab = tabs[activeTabIndex];
-    if (!currentTab.filename || !currentTab.filename.toLowerCase().endsWith('.md')) {
+    if (!currentTab.title || !currentTab.title.toLowerCase().endsWith('.md')) {
       contentBox.innerHTML = '<i>Active document is not a Markdown file (.md).</i>';
       return;
     }
