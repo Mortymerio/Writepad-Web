@@ -665,12 +665,6 @@ function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
   const savedWidth = localStorage.getItem(storageKey);
   if (savedWidth) sidebar.style.width = savedWidth + 'px';
 
-  // Show handle when sidebar is visible
-  new MutationObserver(() => {
-    const visible = sidebar.style.display !== 'none';
-    handle.style.display = visible ? 'block' : 'none';
-  }).observe(sidebar, { attributes: true, attributeFilter: ['style'] });
-
   let startX, startWidth;
   let overlay, tooltip;
 
