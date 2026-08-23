@@ -1,3 +1,4 @@
+@import './styles/titlebar.css';
 :root {
   --bg-primary: #f5f5f5;
   --bg-secondary: #e8e8e8;

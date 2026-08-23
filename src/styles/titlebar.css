@@ -1,0 +1,89 @@
+/* Custom Tauri Titlebar for Borderless Window */
+body {
+  background: transparent !important; /* Allow Tauri transparent window */
+}
+
+.app-rounded {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-light, #333);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.custom-titlebar {
+  height: 30px;
+  background: var(--bg-secondary, #1e1e1e);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  border-bottom: 1px solid var(--border-light, #333);
+  flex-shrink: 0;
+}
+
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  height: 100%;
+  flex: 1;
+}
+
+.titlebar-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  pointer-events: none;
+}
+
+.titlebar-title {
+  color: var(--text-primary, #ccc);
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.titlebar-controls {
+  display: flex;
+  height: 100%;
+}
+
+.titlebar-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 46px;
+  height: 100%;
+  color: var(--text-secondary, #999);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.1s;
+}
+
+.titlebar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #fff);
+}
+
+.titlebar-close:hover {
+  background: #e81123 !important;
+  color: #fff !important;
+}
+
+/* Ensure data-tauri-drag-region acts as a drag area */
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+}
+
+/* Hide titlebar in web version automatically using a JS class later, or just hide by default and show in Tauri */
+:root:not(.is-tauri) .custom-titlebar {
+  display: none;
+}
+:root:not(.is-tauri) .app-rounded {
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
