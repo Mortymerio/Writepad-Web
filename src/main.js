@@ -673,8 +673,9 @@ function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
 
   let startX, startWidth;
 
-  handle.addEventListener('mousedown', (e) => {
+  handle.addEventListener('pointerdown', (e) => {
     e.preventDefault();
+    handle.setPointerCapture(e.pointerId);
     startX = e.clientX;
     startWidth = sidebar.offsetWidth;
     handle.classList.add('dragging');
@@ -694,21 +695,24 @@ function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
       tooltip.style.left = e.clientX + 'px';
       tooltip.style.top = e.clientY + 'px';
       
-      editor.layout(); // re-layout Monaco
+      if (typeof editor !== 'undefined' && editor) editor.layout(); // re-layout Monaco
     };
 
-    const onUp = () => {
+    const onUp = (e) => {
+      handle.releasePointerCapture(e.pointerId);
       handle.classList.remove('dragging');
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       tooltip.remove();
       localStorage.setItem(storageKey, parseInt(sidebar.style.width));
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
     };
 
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onUp);
   });
 }
 
