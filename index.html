@@ -15,7 +15,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   </head>
   <body>
-  <div id="app">
+  <div id="app" class="app-rounded">
+
+    <div class="custom-titlebar" data-tauri-drag-region>
+      <div class="titlebar-left" data-tauri-drag-region>
+        <img src="./icon_square.png" class="titlebar-icon" data-tauri-drag-region />
+      </div>
+      <div class="titlebar-drag-area" data-tauri-drag-region></div>
+      <div class="titlebar-controls">
+        <div class="titlebar-btn" id="titlebar-minimize">&#x2013;</div>
+        <div class="titlebar-btn" id="titlebar-maximize">&#x2610;</div>
+        <div class="titlebar-btn titlebar-close" id="titlebar-close">&#x2715;</div>
+      </div>
+    </div>
+
     
 
       <!-- Menu Bar -->

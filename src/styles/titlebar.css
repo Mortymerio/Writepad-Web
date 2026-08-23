@@ -1,49 +1,50 @@
 /* Custom Tauri Titlebar for Borderless Window */
 body {
-  background: transparent !important; /* Allow Tauri transparent window */
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .app-rounded {
-  border-radius: 8px;
+  border-radius: 12px; /* MORE ROUNDED */
   overflow: hidden;
-  border: 1px solid var(--border-light, #333);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-dark, #333); /* subtle border */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
   height: 100vh;
+  box-sizing: border-box;
 }
 
 .custom-titlebar {
-  height: 30px;
-  background: var(--bg-secondary, #1e1e1e);
+  height: 28px;
+  background: var(--bg-primary, #0d1117); /* Match the main app background to blend in */
   display: flex;
   justify-content: space-between;
   align-items: center;
   user-select: none;
-  border-bottom: 1px solid var(--border-light, #333);
   flex-shrink: 0;
 }
 
 .titlebar-left {
   display: flex;
   align-items: center;
-  padding-left: 10px;
+  padding-left: 12px;
   height: 100%;
-  flex: 1;
 }
 
 .titlebar-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
+  width: 14px; /* LOGO MUY CHIQUITO */
+  height: 14px;
   pointer-events: none;
 }
 
-.titlebar-title {
-  color: var(--text-primary, #ccc);
-  font-size: 12px;
-  font-weight: 500;
-  pointer-events: none;
+.titlebar-drag-area {
+  flex: 1;
+  height: 100%;
+  /* Small visual cue for draggable area (optional, user just asked for it to be draggable) */
+  -webkit-app-region: drag;
 }
 
 .titlebar-controls {
@@ -55,17 +56,17 @@ body {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  width: 46px;
+  width: 40px;
   height: 100%;
-  color: var(--text-secondary, #999);
+  color: var(--text-secondary, #8b949e);
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.1s;
+  font-size: 12px;
+  transition: background 0.1s, color 0.1s;
 }
 
 .titlebar-btn:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: var(--text-primary, #fff);
+  color: var(--text-primary, #c9d1d9);
 }
 
 .titlebar-close:hover {
