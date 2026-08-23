@@ -282,6 +282,7 @@ body, html {
 
 /* Tab Bar */
 .tab-bar {
+  overflow-y: hidden;
   display: flex;
   background-color: var(--bg-secondary);
   padding-top: 4px;
@@ -855,4 +856,24 @@ body.zen-mode .toolbar {
   padding-left: 10px;
   color: var(--text-status);
   margin-left: 0;
+}
+
+
+/* Custom Scrollbar for Cyberpunk theme */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary, #0d1117);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-dark, #30363d);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, #58a6ff);
+}
+::-webkit-scrollbar-corner {
+  background: var(--bg-primary, #0d1117);
 }
