@@ -365,6 +365,7 @@ body, html {
 
 /* Resize handles between sidebars and editor */
 .sidebar-resize-handle {
+  z-index: 9999;
   width: 4px;
   cursor: col-resize;
   background: transparent;
