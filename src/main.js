@@ -665,25 +665,30 @@ function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
   const savedWidth = localStorage.getItem(storageKey);
   if (savedWidth) sidebar.style.width = savedWidth + 'px';
 
-  // Show handle when sidebar is visible (observe display changes via MutationObserver)
+  // Show handle when sidebar is visible
   new MutationObserver(() => {
     const visible = sidebar.style.display !== 'none';
     handle.style.display = visible ? 'block' : 'none';
   }).observe(sidebar, { attributes: true, attributeFilter: ['style'] });
 
   let startX, startWidth;
+  let overlay, tooltip;
 
-  handle.addEventListener('pointerdown', (e) => {
+  handle.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return; // Only left click
     e.preventDefault();
-    handle.setPointerCapture(e.pointerId);
     startX = e.clientX;
     startWidth = sidebar.offsetWidth;
     handle.classList.add('dragging');
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
 
-    let tooltip = document.createElement('div');
-    tooltip.style.cssText = 'position:fixed; background:rgba(0,0,0,0.8); color:#fff; padding:2px 6px; border-radius:3px; font-size:11px; z-index:10000; pointer-events:none; white-space:nowrap; transform:translate(-50%, -100%); margin-top:-10px; font-family:"Inter", sans-serif;';
+    // Create full-screen transparent overlay to capture ALL mouse events during drag
+    // This prevents Monaco Editor or iframes from eating the mouseup/mousemove events
+    overlay = document.createElement('div');
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; cursor: col-resize;';
+    document.body.appendChild(overlay);
+
+    tooltip = document.createElement('div');
+    tooltip.style.cssText = 'position: fixed; background: rgba(0,0,0,0.8); color: #fff; padding: 2px 6px; border-radius: 3px; font-size: 11px; z-index: 1000000; pointer-events: none; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -10px; font-family: "Inter", sans-serif;';
     document.body.appendChild(tooltip);
 
     const onMove = (e) => {
@@ -695,24 +700,21 @@ function setupSidebarResize(handleId, sidebarId, storageKey, isRight = false) {
       tooltip.style.left = e.clientX + 'px';
       tooltip.style.top = e.clientY + 'px';
       
-      if (typeof editor !== 'undefined' && editor) editor.layout(); // re-layout Monaco
+      if (typeof editor !== 'undefined' && editor) editor.layout();
     };
 
     const onUp = (e) => {
-      handle.releasePointerCapture(e.pointerId);
       handle.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      tooltip.remove();
+      if (overlay) overlay.remove();
+      if (tooltip) tooltip.remove();
+      
       localStorage.setItem(storageKey, parseInt(sidebar.style.width));
-      handle.removeEventListener('pointermove', onMove);
-      handle.removeEventListener('pointerup', onUp);
-      handle.removeEventListener('pointercancel', onUp);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
     };
 
-    handle.addEventListener('pointermove', onMove);
-    handle.addEventListener('pointerup', onUp);
-    handle.addEventListener('pointercancel', onUp);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
   });
 }
 
