@@ -386,11 +386,13 @@ export const SoapClientPanel = {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
         <span style="font-weight:bold;font-size:0.85em;">Request Body (XML)</span>
         <div style="display:flex;gap:4px;">
+          <button id="soap-btn-validate" title="Validate request against WSDL schema" style="${btnStyle('#6e40c9')}">🔍 Validate</button>
           <button id="soap-btn-beautify-req" title="Beautify XML" style="${btnStyle()}">✦ Beautify</button>
           <button id="soap-btn-reset" title="Reset to skeleton" style="${btnStyle()}">↺ Reset</button>
         </div>
       </div>
       <textarea id="soap-request-body" spellcheck="false" style="${textareaStyle()};flex:1;min-height:140px;resize:vertical;">${escapeHtml(op.requestBody || '')}</textarea>
+      <div id="soap-validation-result" style="display:none;padding:8px;border-radius:4px;font-size:0.82em;font-family:monospace;white-space:pre-wrap;border:1px solid var(--border-color);max-height:140px;overflow-y:auto;"></div>
 
       <!-- Send button -->
       <div style="display:flex;gap:6px;align-items:center;">
@@ -642,6 +644,11 @@ export const SoapClientPanel = {
       this._saveSelectedOp({ requestBody: reqBody.value });
     });
 
+    // Validate request against WSDL
+    container.querySelector('#soap-btn-validate')?.addEventListener('click', () => {
+      this._validateRequest(container);
+    });
+
     // Send
     container.querySelector('#soap-btn-send')?.addEventListener('click', () => this._sendRequest(container));
 
@@ -670,6 +677,177 @@ export const SoapClientPanel = {
       const txt = container.querySelector('#soap-response')?.value;
       if (!txt) return;
       if (this.callbacks.createTab) this.callbacks.createTab('response.xml', txt);
+    });
+  },
+
+  _validateRequest(container) {
+    const resultEl = container.querySelector('#soap-validation-result');
+    const reqBody = container.querySelector('#soap-request-body')?.value || '';
+    const op = this._getSelectedOp();
+    const proj = this.projects.find(p => p.id === this.selectedProjectId);
+
+    const show = (msg, ok) => {
+      resultEl.style.display = 'block';
+      resultEl.style.background = ok ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)';
+      resultEl.style.borderColor = ok ? '#3fb950' : '#f85149';
+      resultEl.style.color = ok ? '#3fb950' : '#f85149';
+      resultEl.innerText = msg;
+    };
+
+    // Step 1: Well-formed XML
+    const parser = new DOMParser();
+    const reqDoc = parser.parseFromString(reqBody, 'application/xml');
+    const parseErr = reqDoc.querySelector('parsererror');
+    if (parseErr) {
+      show('❌ XML Parse Error:\n' + parseErr.textContent.trim(), false);
+      return;
+    }
+
+    const errors = [];
+    const warnings = [];
+
+    // Step 2: SOAP Envelope structure
+    const envelope = reqDoc.documentElement;
+    if (envelope.localName !== 'Envelope') {
+      errors.push(`Root element must be "Envelope" but found "${envelope.localName}"`);
+    }
+    const envNs = envelope.namespaceURI || '';
+    if (!['http://schemas.xmlsoap.org/soap/envelope/', 'http://www.w3.org/2003/05/soap-envelope'].includes(envNs)) {
+      errors.push(`Unknown SOAP namespace: "${envNs}"\n  Expected SOAP 1.1 or 1.2 namespace`);
+    }
+
+    const bodyEl = Array.from(envelope.children).find(c => c.localName === 'Body');
+    if (!bodyEl) {
+      errors.push('Missing <Body> element inside Envelope');
+    }
+
+    // Step 3: Operation element in Body
+    if (bodyEl && op) {
+      const bodyChildren = Array.from(bodyEl.children);
+      if (bodyChildren.length === 0) {
+        errors.push('Body is empty — expected an operation element');
+      } else {
+        const opEl = bodyChildren[0];
+        if (opEl.localName !== op.name) {
+          warnings.push(`Body contains "<${opEl.localName}>" but selected operation is "${op.name}"`);
+        }
+      }
+    }
+
+    // Step 4: WSDL schema validation
+    if (!proj?.wsdlXml) {
+      warnings.push('No WSDL schema stored for this project.\nImport via "📄 Import WSDL" to enable full schema validation.');
+    } else {
+      try {
+        const wsdlDoc = parser.parseFromString(proj.wsdlXml, 'application/xml');
+        const XSD = 'http://www.w3.org/2001/XMLSchema';
+        const schemas = wsdlDoc.getElementsByTagNameNS(XSD, 'schema');
+
+        if (schemas.length === 0) {
+          warnings.push('No XSD schema found in WSDL <types> — skipping deep validation');
+        } else {
+          // Resolve input message → element name for this operation
+          let inputElementName = null;
+          const portTypes = wsdlDoc.getElementsByTagNameNS('*', 'portType');
+          outer: for (const pt of portTypes) {
+            for (const ptOp of Array.from(pt.getElementsByTagNameNS('*', 'operation'))) {
+              if (ptOp.getAttribute('name') === op?.name) {
+                const inputMsgName = ptOp.querySelector('input')?.getAttribute('message')?.split(':').pop();
+                if (inputMsgName) {
+                  const msgs = wsdlDoc.getElementsByTagNameNS('*', 'message');
+                  for (const msg of msgs) {
+                    if (msg.getAttribute('name') === inputMsgName) {
+                      const part = msg.querySelector('part');
+                      inputElementName = part?.getAttribute('element')?.split(':').pop() || part?.getAttribute('type')?.split(':').pop();
+                      break;
+                    }
+                  }
+                }
+                break outer;
+              }
+            }
+          }
+
+          if (!inputElementName) {
+            warnings.push('Could not resolve input element from WSDL — skipping deep validation');
+          } else {
+            // Find xsd:element definition
+            let xsdElement = null;
+            for (const schema of schemas) {
+              for (const el of Array.from(schema.getElementsByTagNameNS(XSD, 'element'))) {
+                if (el.getAttribute('name') === inputElementName && el.parentNode === schema) {
+                  xsdElement = el; break;
+                }
+              }
+              if (xsdElement) break;
+            }
+
+            if (!xsdElement) {
+              warnings.push(`XSD element "${inputElementName}" not found in WSDL schema`);
+            } else {
+              const bodyOpEl = bodyEl ? Array.from(bodyEl.children)[0] : null;
+              if (bodyOpEl) {
+                this._validateXsdElement(xsdElement, bodyOpEl, '', errors, warnings, schemas, XSD);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        warnings.push('Error reading WSDL for validation: ' + e.message);
+      }
+    }
+
+    // Result
+    if (errors.length === 0 && warnings.length === 0) {
+      show('✅ Valid — No errors or warnings found.\nThe request XML matches the expected WSDL structure.', true);
+    } else {
+      let msg = '';
+      if (errors.length) msg += errors.map(e => `❌ ${e}`).join('\n') + '\n';
+      if (warnings.length) msg += warnings.map(w => `⚠️  ${w}`).join('\n');
+      show(msg.trim(), errors.length === 0);
+    }
+  },
+
+  _validateXsdElement(xsdEl, xmlEl, path, errors, warnings, schemas, XSD) {
+    const complexType = Array.from(xsdEl.children).find(c =>
+      c.localName === 'complexType' && c.namespaceURI === XSD
+    );
+    if (!complexType) return;
+
+    const group = Array.from(complexType.children).find(c =>
+      (c.localName === 'sequence' || c.localName === 'all') && c.namespaceURI === XSD
+    );
+    if (!group) return;
+
+    const currentPath = path ? `${path}/${xmlEl.localName}` : xmlEl.localName;
+    const expectedChildren = Array.from(group.children).filter(c =>
+      c.localName === 'element' && c.namespaceURI === XSD
+    );
+
+    for (const expected of expectedChildren) {
+      const name = expected.getAttribute('name');
+      if (!name) continue;
+      const minOccurs = parseInt(expected.getAttribute('minOccurs') ?? '1', 10);
+      const nillable = expected.getAttribute('nillable') === 'true';
+      const found = Array.from(xmlEl.children).filter(c => c.localName === name);
+
+      if (found.length === 0 && minOccurs > 0 && !nillable) {
+        errors.push(`Missing required element <${name}> in <${currentPath}>`);
+      } else {
+        found.forEach(fc => {
+          if (fc.children.length === 0 && fc.textContent.trim() === '?') {
+            warnings.push(`<${currentPath}/${name}> still has placeholder value "?"`);
+          }
+        });
+      }
+    }
+
+    // Unexpected elements
+    const expectedNames = new Set(expectedChildren.map(e => e.getAttribute('name')).filter(Boolean));
+    Array.from(xmlEl.children).forEach(child => {
+      if (!expectedNames.has(child.localName)) {
+        warnings.push(`Unexpected element <${child.localName}> inside <${currentPath}>`);
+      }
     });
   },
 
@@ -791,7 +969,7 @@ export const SoapClientPanel = {
       if (!xml) { wsdlError.innerText = 'Please provide WSDL XML (fetch or paste)'; return; }
       try {
         const services = parseWsdl(xml);
-        const proj = { id: uid(), name: projName, services, defaultEndpoint: services[0]?.ports?.[0]?.endpoint || '' };
+        const proj = { id: uid(), name: projName, services, wsdlXml: xml, defaultEndpoint: services[0]?.ports?.[0]?.endpoint || '' };
         this.projects.push(proj);
         ProjectStore.save(this.projects);
         wsdlModal.style.display = 'none';
