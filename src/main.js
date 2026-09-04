@@ -632,6 +632,7 @@ bindSidebarBtn('btn-workspace', 'workspace');
 bindSidebarBtn('btn-todo-tree', 'todo');
 bindSidebarBtn('btn-macros-list', 'macros');
 bindSidebarBtn('btn-restclient', 'restclient');
+bindSidebarBtn('btn-soapclient', 'soapclient');
 bindSidebarBtn('btn-repeater', 'repeater');
 bindSidebarBtn('btn-nmap-parser', 'nmap-parser');
 bindSidebarBtn('btn-cmd-builder', 'cmd-builder');

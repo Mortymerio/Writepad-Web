@@ -1,6 +1,7 @@
 import * as monaco from 'monaco-editor';
 import { ToastManager } from './ToastManager.js';
 import { RepeaterPanel } from './RepeaterPanel.js';
+import { SoapClientPanel } from './SoapClientPanel.js';
 
 // IndexedDB helper for storing FileSystemDirectoryHandle
 const WorkspaceDB = {
@@ -59,6 +60,10 @@ export const SidebarManager = {
     
     // Core panels
     this.registerRightPanel('restclient', 'REST API Client', (c) => this.renderSidebarRestClient(c));
+    this.registerRightPanel('soapclient', 'SOAP Client', (c) => {
+      SoapClientPanel.init({ createTab: this.callbacks.createTab });
+      SoapClientPanel.renderSidebar(c);
+    });
     this.registerRightPanel('md-preview', 'Markdown Preview', (c) => this.renderSidebarMdPreview(c));
     this.registerRightPanel('gtfobins', 'GTFOBins Wiki', (c) => this.renderSidebarGTFOBins(c));
     this.registerRightPanel('revshell', 'Reverse Shell Generator', (c) => this.renderSidebarRevShell(c));
