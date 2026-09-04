@@ -1,4 +1,4 @@
-import{i as e,n as t}from"./index-C-BDtW-d.js";var n={callbacks:{},container:null,init(e){this.callbacks=e},renderSidebar(e){this.container=e,e.innerHTML=`
+import{i as e,n as t}from"./index-5zD-uwAp.js";var n={callbacks:{},container:null,init(e){this.callbacks=e},renderSidebar(e){this.container=e,e.innerHTML=`
       <div class="md-preview-container">
         <div class="md-preview-header">
           <span>Markdown Preview</span>

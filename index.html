@@ -13,15 +13,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/Writepad-Web/assets/index-C-BDtW-d.js"></script>
+    <script type="module" crossorigin src="/Writepad-Web/assets/index-5zD-uwAp.js"></script>
     <link rel="modulepreload" crossorigin href="/Writepad-Web/assets/editor.api-D7OB3-Nf.js">
     <link rel="modulepreload" crossorigin href="/Writepad-Web/assets/preload-helper-8MtV_aQO.js">
     <link rel="modulepreload" crossorigin href="/Writepad-Web/assets/ToastManager-Db86LBLx.js">
     <link rel="stylesheet" crossorigin href="/Writepad-Web/assets/editor-DYpEHO_6.css">
-    <link rel="stylesheet" crossorigin href="/Writepad-Web/assets/index-D9izynYj.css">
+    <link rel="stylesheet" crossorigin href="/Writepad-Web/assets/index-DWgT4TqQ.css">
   </head>
   <body>
-  <div id="app">
+  <div id="app" class="app-rounded">
+
+    <div class="custom-titlebar" data-tauri-drag-region>
+      <div class="titlebar-left" data-tauri-drag-region>
+        <img src="/Writepad-Web/assets/icon_square-1pvIipOp.png" class="titlebar-icon" data-tauri-drag-region />
+      </div>
+      <div class="titlebar-drag-area" data-tauri-drag-region></div>
+      <div class="titlebar-controls">
+        <div class="titlebar-btn" id="titlebar-minimize">&#x2013;</div>
+        <div class="titlebar-btn" id="titlebar-maximize">&#x2610;</div>
+        <div class="titlebar-btn titlebar-close" id="titlebar-close">&#x2715;</div>
+      </div>
+    </div>
+
     
 
       <!-- Menu Bar -->
@@ -317,6 +330,12 @@
           <button class="toolbar-btn" title="AI Magic Wand (Prompt)" id="btn-ai-prompt" style="font-size: 1.2em;"><i data-lucide="wand-2" width="18" height="18"></i></button>
           <button class="toolbar-btn" title="AI Agents" id="btn-agents" style="font-size: 1.2em; margin-left: 5px;"><i data-lucide="bot" width="18" height="18"></i></button>
           <!-- Plugin buttons will be added here -->
+          <div class="toolbar-separator"></div>
+        </div>
+
+        <div class="toolbar-group">
+          <!-- 11. General Web Tools -->
+          <button class="toolbar-btn" title="SOAP Client" id="btn-soapclient"><i data-lucide="radio-tower" width="18" height="18"></i></button>
           <div class="toolbar-separator"></div>
         </div>
 
