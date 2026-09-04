@@ -221,26 +221,81 @@ export const SoapClientPanel = {
 
   <!-- Toolbar -->
   <div style="display:flex;gap:4px;padding:6px;border-bottom:1px solid var(--border-color);flex-shrink:0;flex-wrap:wrap;">
-    <button id="soap-btn-new-project" title="New Project" style="${btnStyle('var(--accent-color)')}">＋ New Project</button>
+    <button id="soap-btn-new-project" title="New Project" style="${btnStyle('var(--accent-color, #1a73e8)')}">＋ New Project</button>
     <button id="soap-btn-import-wsdl" title="Import from WSDL" style="${btnStyle()}">📄 Import WSDL</button>
     <button id="soap-btn-export" title="Export all projects as JSON" style="${btnStyle()}">⬇ Export</button>
     <button id="soap-btn-import-json" title="Import projects from JSON" style="${btnStyle()}">⬆ Import</button>
     <input type="file" id="soap-file-import" accept=".json" style="display:none">
   </div>
 
-  <!-- Main area: tree + editor -->
-  <div style="display:flex;flex:1;overflow:hidden;">
+  <!-- Mode tabs -->
+  <div style="display:flex;border-bottom:1px solid #444;flex-shrink:0;">
+    <button id="soap-tab-projects" style="padding:6px 14px;background:transparent;border:none;border-bottom:2px solid #e0e0e0;color:#e0e0e0;cursor:pointer;font-size:0.85em;font-weight:bold;">📁 Projects</button>
+    <button id="soap-tab-quick" style="padding:6px 14px;background:transparent;border:none;border-bottom:2px solid transparent;color:#888;cursor:pointer;font-size:0.85em;">⚡ Quick Send</button>
+  </div>
+
+  <!-- Projects mode -->
+  <div id="soap-mode-projects" style="display:flex;flex:1;overflow:hidden;">
 
     <!-- Projects tree -->
-    <div id="soap-tree" style="width:200px;min-width:140px;max-width:300px;border-right:1px solid var(--border-color);overflow-y:auto;flex-shrink:0;padding:4px 0;">
+    <div id="soap-tree" style="width:200px;min-width:140px;max-width:300px;border-right:1px solid #444;overflow-y:auto;flex-shrink:0;padding:4px 0;color:#e0e0e0;">
       ${this._treeHtml()}
     </div>
 
     <!-- Request / Response editor -->
-    <div id="soap-editor" style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:8px;gap:6px;">
+    <div id="soap-editor" style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:8px;gap:6px;color:#e0e0e0;">
       ${this._editorHtml()}
     </div>
 
+  </div>
+
+  <!-- Quick Send mode -->
+  <div id="soap-mode-quick" style="display:none;flex:1;flex-direction:column;padding:10px;gap:8px;overflow-y:auto;color:#e0e0e0;">
+    <div style="font-size:0.82em;color:#aaa;margin-bottom:2px;">Send a raw SOAP request without configuring a project.</div>
+
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-weight:bold;color:#aaa;white-space:nowrap;font-size:0.85em;">Endpoint</span>
+      <input id="soap-quick-endpoint" type="text" placeholder="https://example.com/service" style="${inputStyle()};flex:1;">
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span style="font-size:0.82em;color:#aaa;white-space:nowrap;">SOAPAction</span>
+      <input id="soap-quick-action" type="text" placeholder='urn:MyAction  (leave blank if not required)' style="${inputStyle()};flex:1;min-width:120px;">
+      <select id="soap-quick-version" style="${inputStyle()};width:90px;">
+        <option value="1.1">SOAP 1.1</option>
+        <option value="1.2">SOAP 1.2</option>
+      </select>
+    </div>
+
+    <details style="border:1px solid #444;border-radius:4px;padding:4px 8px;">
+      <summary style="cursor:pointer;font-size:0.83em;color:#aaa;">📋 Custom HTTP Headers (JSON)</summary>
+      <textarea id="soap-quick-headers" rows="3" placeholder='{"Authorization": "Bearer token"}' style="${textareaStyle()};width:100%;box-sizing:border-box;margin-top:6px;"></textarea>
+    </details>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-weight:bold;font-size:0.85em;">Request Body (XML)</span>
+      <div style="display:flex;gap:4px;">
+        <button id="soap-quick-beautify" style="${btnStyle()}">✦ Beautify</button>
+        <button id="soap-quick-skeleton" style="${btnStyle()}">☰ SOAP 1.1 skeleton</button>
+      </div>
+    </div>
+    <textarea id="soap-quick-body" spellcheck="false" rows="10" placeholder='<?xml version="1.0" encoding="UTF-8"?>&#10;<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">&#10;  <soapenv:Header/>&#10;  <soapenv:Body>&#10;    <!-- your content here -->&#10;  </soapenv:Body>&#10;</soapenv:Envelope>' style="${textareaStyle()};flex:1;min-height:160px;width:100%;box-sizing:border-box;"></textarea>
+
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button id="soap-quick-send" style="padding:6px 18px;background:#238636;color:#fff;border:1px solid #2ea043;border-radius:4px;cursor:pointer;font-size:0.85em;font-weight:bold;">▶ Send</button>
+      <button id="soap-quick-clear" style="${btnStyle()}">✕ Clear</button>
+      <span id="soap-quick-status" style="font-size:0.82em;margin-left:4px;"></span>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-weight:bold;font-size:0.85em;">Response</span>
+      <div style="display:flex;gap:4px;">
+        <button id="soap-quick-beautify-res" style="${btnStyle()}">✦ Beautify</button>
+        <button id="soap-quick-copy-res" style="${btnStyle()}">📋 Copy</button>
+        <button id="soap-quick-open-editor" style="${btnStyle()}">↗ Editor</button>
+      </div>
+    </div>
+    <textarea id="soap-quick-response" readonly spellcheck="false" rows="8" style="${textareaStyle()};flex:1;min-height:120px;width:100%;box-sizing:border-box;color:#aaa;"></textarea>
   </div>
 
   <!-- WSDL Import modal -->
@@ -465,10 +520,141 @@ export const SoapClientPanel = {
   },
 
   _bind(container) {
+    this._bindTabs(container);
     this._bindToolbar(container);
     this._bindTree(container);
     this._bindEditor(container);
     this._bindModals(container);
+    this._bindQuickSend(container);
+  },
+
+  _bindTabs(container) {
+    const tabProjects = container.querySelector('#soap-tab-projects');
+    const tabQuick = container.querySelector('#soap-tab-quick');
+    const modeProjects = container.querySelector('#soap-mode-projects');
+    const modeQuick = container.querySelector('#soap-mode-quick');
+
+    const activateProjects = () => {
+      tabProjects.style.borderBottom = '2px solid #e0e0e0';
+      tabProjects.style.color = '#e0e0e0';
+      tabProjects.style.fontWeight = 'bold';
+      tabQuick.style.borderBottom = '2px solid transparent';
+      tabQuick.style.color = '#888';
+      tabQuick.style.fontWeight = 'normal';
+      modeProjects.style.display = 'flex';
+      modeQuick.style.display = 'none';
+    };
+    const activateQuick = () => {
+      tabQuick.style.borderBottom = '2px solid #e0e0e0';
+      tabQuick.style.color = '#e0e0e0';
+      tabQuick.style.fontWeight = 'bold';
+      tabProjects.style.borderBottom = '2px solid transparent';
+      tabProjects.style.color = '#888';
+      tabProjects.style.fontWeight = 'normal';
+      modeProjects.style.display = 'none';
+      modeQuick.style.display = 'flex';
+    };
+
+    tabProjects.onclick = activateProjects;
+    tabQuick.onclick = activateQuick;
+  },
+
+  _bindQuickSend(container) {
+    const SKELETON_11 = `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <!-- paste your operation element here -->
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+    const SKELETON_12 = `<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope">
+  <env:Header/>
+  <env:Body>
+    <!-- paste your operation element here -->
+  </env:Body>
+</env:Envelope>`;
+
+    container.querySelector('#soap-quick-skeleton')?.addEventListener('click', () => {
+      const ver = container.querySelector('#soap-quick-version')?.value || '1.1';
+      const body = container.querySelector('#soap-quick-body');
+      if (body) body.value = ver === '1.2' ? SKELETON_12 : SKELETON_11;
+    });
+
+    container.querySelector('#soap-quick-beautify')?.addEventListener('click', () => {
+      const body = container.querySelector('#soap-quick-body');
+      if (body) body.value = prettyXmlV2(body.value);
+    });
+
+    container.querySelector('#soap-quick-beautify-res')?.addEventListener('click', () => {
+      const res = container.querySelector('#soap-quick-response');
+      if (res) res.value = prettyXmlV2(res.value);
+    });
+
+    container.querySelector('#soap-quick-copy-res')?.addEventListener('click', () => {
+      const txt = container.querySelector('#soap-quick-response')?.value;
+      if (txt) navigator.clipboard.writeText(txt);
+    });
+
+    container.querySelector('#soap-quick-open-editor')?.addEventListener('click', () => {
+      const txt = container.querySelector('#soap-quick-response')?.value;
+      if (!txt) return;
+      if (this.callbacks.createTab) this.callbacks.createTab('quick-response.xml', txt);
+    });
+
+    container.querySelector('#soap-quick-clear')?.addEventListener('click', () => {
+      const res = container.querySelector('#soap-quick-response');
+      const status = container.querySelector('#soap-quick-status');
+      if (res) res.value = '';
+      if (status) { status.innerText = ''; status.style.color = ''; }
+    });
+
+    container.querySelector('#soap-quick-send')?.addEventListener('click', async () => {
+      const endpoint = container.querySelector('#soap-quick-endpoint')?.value.trim();
+      const soapAction = container.querySelector('#soap-quick-action')?.value.trim() || '';
+      const version = container.querySelector('#soap-quick-version')?.value || '1.1';
+      const body = container.querySelector('#soap-quick-body')?.value || '';
+      const headersStr = container.querySelector('#soap-quick-headers')?.value.trim() || '';
+      const resEl = container.querySelector('#soap-quick-response');
+      const statusEl = container.querySelector('#soap-quick-status');
+
+      if (!endpoint) {
+        resEl.value = 'Error: Endpoint is required.';
+        return;
+      }
+
+      statusEl.innerText = 'Sending...';
+      statusEl.style.color = '#aaa';
+      resEl.value = '';
+
+      const headers = {};
+      if (version === '1.2') {
+        headers['Content-Type'] = `application/soap+xml; charset=utf-8${soapAction ? `; action="${soapAction}"` : ''}`;
+      } else {
+        headers['Content-Type'] = 'text/xml; charset=utf-8';
+        if (soapAction) headers['SOAPAction'] = `"${soapAction}"`;
+      }
+
+      if (headersStr) {
+        try { Object.assign(headers, JSON.parse(headersStr)); }
+        catch { resEl.value = 'Error: Custom headers must be valid JSON.'; statusEl.innerText = 'Error'; statusEl.style.color = '#f85149'; return; }
+      }
+
+      try {
+        const t0 = performance.now();
+        const resp = await fetch(endpoint, { method: 'POST', headers, body });
+        const elapsed = Math.round(performance.now() - t0);
+        const text = await resp.text();
+        statusEl.innerText = `${resp.status} ${resp.statusText} — ${elapsed}ms`;
+        statusEl.style.color = resp.ok ? '#3fb950' : '#f85149';
+        resEl.value = prettyXmlV2(text);
+      } catch (err) {
+        statusEl.innerText = 'Failed';
+        statusEl.style.color = '#f85149';
+        resEl.value = `Request Failed:\n${err.message}\n\n(CORS may block browser requests — Desktop app has no CORS restrictions.)`;
+      }
+    });
   },
 
   _bindToolbar(container) {
@@ -1017,12 +1203,12 @@ export const SoapClientPanel = {
 };
 
 // ── Shared style helpers ──────────────────────────────────────────────────────
-function btnStyle(bg = 'var(--bg-secondary)') {
-  return `padding:4px 9px;background:${bg};color:var(--text-primary);border:1px solid var(--border-color);border-radius:4px;cursor:pointer;font-size:0.82em;`;
+function btnStyle(bg = '#2d2d2d') {
+  return `padding:4px 9px;background:${bg};color:#e0e0e0;border:1px solid #444;border-radius:4px;cursor:pointer;font-size:0.82em;white-space:nowrap;`;
 }
 function inputStyle() {
-  return `padding:4px 7px;background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:4px;outline:none;font-size:0.85em;`;
+  return `padding:4px 7px;background:#1e1e1e;color:#e0e0e0;border:1px solid #444;border-radius:4px;outline:none;font-size:0.85em;`;
 }
 function textareaStyle() {
-  return `padding:6px;background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:4px;outline:none;font-family:monospace;font-size:0.85em;resize:vertical;`;
+  return `padding:6px;background:#1e1e1e;color:#e0e0e0;border:1px solid #444;border-radius:4px;outline:none;font-family:monospace;font-size:0.85em;resize:vertical;`;
 }
