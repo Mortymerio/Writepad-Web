@@ -2,6 +2,8 @@
 //  SoapClientPanel.js  –  Full SoapUI-like SOAP client for Writepad
 // ─────────────────────────────────────────────────────────────────────────────
 
+import * as monaco from 'monaco-editor';
+
 const STORAGE_KEY = 'writepad_soap_projects';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -234,6 +236,12 @@ export const SoapClientPanel = {
     <button id="soap-tab-quick" style="padding:6px 14px;background:transparent;border:none;border-bottom:2px solid transparent;color:#888;cursor:pointer;font-size:0.85em;">⚡ Quick Send</button>
   </div>
 
+  <!-- Extension Banner -->
+  <div id="soap-ext-banner" style="display:none;background:#1f6feb;color:#fff;padding:8px 12px;margin:8px;border-radius:4px;font-size:0.85em;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <span style="flex:1;">¿Probando APIs internas/VPN? <a href="#" onclick="alert('Pronto estará disponible el link a la Chrome Web Store. ¡Ya enviada a revisión!'); return false;" style="color:#fff;text-decoration:underline;font-weight:bold;">Instalá la extensión oficial</a> para saltar el bloqueo CORS.</span>
+    <button id="soap-ext-banner-close" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1em;padding:0 4px;">✕</button>
+  </div>
+
   <!-- Projects mode -->
   <div id="soap-mode-projects" style="display:flex;flex:1;overflow:hidden;">
 
@@ -268,8 +276,20 @@ export const SoapClientPanel = {
     </div>
 
     <details style="border:1px solid #444;border-radius:4px;padding:4px 8px;">
-      <summary style="cursor:pointer;font-size:0.83em;color:#aaa;">📋 Custom HTTP Headers (JSON)</summary>
-      <textarea id="soap-quick-headers" rows="3" placeholder='{"Authorization": "Bearer token"}' style="${textareaStyle()};width:100%;box-sizing:border-box;margin-top:6px;"></textarea>
+      <summary style="cursor:pointer;font-size:0.83em;color:#aaa;">🔐 Auth & HTTP Headers</summary>
+      
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;margin-bottom:6px;">
+        <span style="font-size:0.82em;color:#aaa;">Auth:</span>
+        <select id="soap-quick-auth-type" style="${inputStyle()};width:100px;" onchange="document.getElementById('soap-quick-auth-token').style.display = this.value === 'none' ? 'none' : 'block'">
+          <option value="none">None</option>
+          <option value="basic">Basic Auth</option>
+          <option value="bearer">Bearer Token</option>
+        </select>
+        <input id="soap-quick-auth-token" type="text" placeholder="user:pass / token" style="${inputStyle()};flex:1;display:none;">
+      </div>
+
+      <div style="font-size:0.82em;color:#aaa;margin-bottom:2px;">Custom Headers (JSON):</div>
+      <textarea id="soap-quick-headers" rows="2" placeholder='{"X-Custom-Header": "value"}' style="${textareaStyle()};width:100%;box-sizing:border-box;"></textarea>
     </details>
 
     <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -295,7 +315,7 @@ export const SoapClientPanel = {
         <button id="soap-quick-open-editor" style="${btnStyle()}">↗ Editor</button>
       </div>
     </div>
-    <textarea id="soap-quick-response" readonly spellcheck="false" rows="8" style="${textareaStyle()};flex:1;min-height:120px;width:100%;box-sizing:border-box;color:#aaa;"></textarea>
+    <div id="soap-quick-response" style="flex:1;min-height:120px;border:1px solid #444;border-radius:4px;overflow:hidden;"></div>
   </div>
 
   <!-- WSDL Import modal -->
@@ -467,7 +487,7 @@ export const SoapClientPanel = {
           <button id="soap-btn-open-editor" style="${btnStyle()}">↗ Open in Editor</button>
         </div>
       </div>
-      <textarea id="soap-response" readonly spellcheck="false" style="${textareaStyle()};flex:1;min-height:120px;resize:vertical;color:var(--text-secondary);"></textarea>
+      <div id="soap-response" style="flex:1;min-height:120px;border:1px solid #444;border-radius:4px;overflow:hidden;"></div>
     `;
   },
 
@@ -559,6 +579,16 @@ export const SoapClientPanel = {
 
     tabProjects.onclick = activateProjects;
     tabQuick.onclick = activateQuick;
+
+    const banner = container.querySelector('#soap-ext-banner');
+    if (banner) {
+      if (!document.documentElement.hasAttribute('data-writepad-ext')) {
+        banner.style.display = 'flex';
+      }
+      container.querySelector('#soap-ext-banner-close').onclick = () => {
+        banner.style.display = 'none';
+      };
+    }
   },
 
   _bindQuickSend(container) {
@@ -589,26 +619,42 @@ export const SoapClientPanel = {
       if (body) body.value = prettyXmlV2(body.value);
     });
 
+    if (this.quickResMonaco) { this.quickResMonaco.dispose(); this.quickResMonaco = null; }
+    const quickResDiv = container.querySelector('#soap-quick-response');
+    if (quickResDiv) {
+      this.quickResMonaco = monaco.editor.create(quickResDiv, {
+        value: '',
+        language: 'xml',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        readOnly: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: 'on'
+      });
+    }
+
     container.querySelector('#soap-quick-beautify-res')?.addEventListener('click', () => {
-      const res = container.querySelector('#soap-quick-response');
-      if (res) res.value = prettyXmlV2(res.value);
+      if (this.quickResMonaco) {
+        const val = this.quickResMonaco.getValue();
+        this.quickResMonaco.setValue(prettyXmlV2(val));
+      }
     });
 
     container.querySelector('#soap-quick-copy-res')?.addEventListener('click', () => {
-      const txt = container.querySelector('#soap-quick-response')?.value;
+      const txt = this.quickResMonaco ? this.quickResMonaco.getValue() : '';
       if (txt) navigator.clipboard.writeText(txt);
     });
 
     container.querySelector('#soap-quick-open-editor')?.addEventListener('click', () => {
-      const txt = container.querySelector('#soap-quick-response')?.value;
+      const txt = this.quickResMonaco ? this.quickResMonaco.getValue() : '';
       if (!txt) return;
       if (this.callbacks.createTab) this.callbacks.createTab('quick-response.xml', txt);
     });
 
     container.querySelector('#soap-quick-clear')?.addEventListener('click', () => {
-      const res = container.querySelector('#soap-quick-response');
       const status = container.querySelector('#soap-quick-status');
-      if (res) res.value = '';
+      if (this.quickResMonaco) this.quickResMonaco.setValue('');
       if (status) { status.innerText = ''; status.style.color = ''; }
     });
 
@@ -618,17 +664,16 @@ export const SoapClientPanel = {
       const version = container.querySelector('#soap-quick-version')?.value || '1.1';
       const body = container.querySelector('#soap-quick-body')?.value || '';
       const headersStr = container.querySelector('#soap-quick-headers')?.value.trim() || '';
-      const resEl = container.querySelector('#soap-quick-response');
       const statusEl = container.querySelector('#soap-quick-status');
 
       if (!endpoint) {
-        resEl.value = 'Error: Endpoint is required.';
+        if (this.quickResMonaco) this.quickResMonaco.setValue('Error: Endpoint is required.');
         return;
       }
 
       statusEl.innerText = 'Sending...';
       statusEl.style.color = '#aaa';
-      resEl.value = '';
+      if (this.quickResMonaco) this.quickResMonaco.setValue('');
 
       const headers = {};
       if (version === '1.2') {
@@ -638,9 +683,17 @@ export const SoapClientPanel = {
         if (soapAction) headers['SOAPAction'] = `"${soapAction}"`;
       }
 
+      const authType = container.querySelector('#soap-quick-auth-type')?.value;
+      const authToken = container.querySelector('#soap-quick-auth-token')?.value.trim();
+      if (authType === 'basic' && authToken) {
+        headers['Authorization'] = 'Basic ' + btoa(authToken);
+      } else if (authType === 'bearer' && authToken) {
+        headers['Authorization'] = 'Bearer ' + authToken;
+      }
+
       if (headersStr) {
         try { Object.assign(headers, JSON.parse(headersStr)); }
-        catch { resEl.value = 'Error: Custom headers must be valid JSON.'; statusEl.innerText = 'Error'; statusEl.style.color = '#f85149'; return; }
+        catch { if (this.quickResMonaco) this.quickResMonaco.setValue('Error: Custom headers must be valid JSON.'); statusEl.innerText = 'Error'; statusEl.style.color = '#f85149'; return; }
       }
 
       try {
@@ -650,11 +703,11 @@ export const SoapClientPanel = {
         const text = await resp.text();
         statusEl.innerText = `${resp.status} ${resp.statusText} — ${elapsed}ms`;
         statusEl.style.color = resp.ok ? '#3fb950' : '#f85149';
-        resEl.value = prettyXmlV2(text);
+        if (this.quickResMonaco) this.quickResMonaco.setValue(prettyXmlV2(text));
       } catch (err) {
         statusEl.innerText = 'Failed';
         statusEl.style.color = '#f85149';
-        resEl.value = `Request Failed:\n${err.message}\n\n(CORS may block browser requests — Desktop app has no CORS restrictions.)`;
+        if (this.quickResMonaco) this.quickResMonaco.setValue(`Request Failed:\n${err.message}\n\n(CORS may block browser requests — Desktop app has no CORS restrictions.)`);
       }
     });
   },
@@ -793,6 +846,22 @@ export const SoapClientPanel = {
     const reqBody = container.querySelector('#soap-request-body');
     if (reqBody) reqBody.oninput = () => this._saveSelectedOp({ requestBody: reqBody.value });
 
+    // Initialize Monaco for Response
+    if (this.resMonaco) { this.resMonaco.dispose(); this.resMonaco = null; }
+    const resDiv = container.querySelector('#soap-response');
+    if (resDiv) {
+      this.resMonaco = monaco.editor.create(resDiv, {
+        value: op.lastResponse || '',
+        language: 'xml',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        readOnly: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: 'on'
+      });
+    }
+
     // Save endpoint
     container.querySelector('#soap-save-endpoint')?.addEventListener('click', () => {
       const ep = container.querySelector('#soap-endpoint').value.trim();
@@ -842,27 +911,28 @@ export const SoapClientPanel = {
 
     // Clear response
     container.querySelector('#soap-btn-clear-res')?.addEventListener('click', () => {
-      const res = container.querySelector('#soap-response');
-      if (res) res.value = '';
+      if (this.resMonaco) this.resMonaco.setValue('');
       const status = container.querySelector('#soap-status');
       if (status) { status.innerText = ''; status.style.color = ''; }
     });
 
     // Beautify response
     container.querySelector('#soap-btn-beautify-res')?.addEventListener('click', () => {
-      const res = container.querySelector('#soap-response');
-      if (res) res.value = prettyXmlV2(res.value);
+      if (this.resMonaco) {
+        const val = this.resMonaco.getValue();
+        this.resMonaco.setValue(prettyXmlV2(val));
+      }
     });
 
     // Copy response
     container.querySelector('#soap-btn-copy-res')?.addEventListener('click', () => {
-      const txt = container.querySelector('#soap-response')?.value;
+      const txt = this.resMonaco ? this.resMonaco.getValue() : '';
       if (txt) navigator.clipboard.writeText(txt);
     });
 
     // Open in editor
     container.querySelector('#soap-btn-open-editor')?.addEventListener('click', () => {
-      const txt = container.querySelector('#soap-response')?.value;
+      const txt = this.resMonaco ? this.resMonaco.getValue() : '';
       if (!txt) return;
       if (this.callbacks.createTab) this.callbacks.createTab('response.xml', txt);
     });
@@ -1068,7 +1138,8 @@ export const SoapClientPanel = {
 
     statusEl.innerText = 'Sending...';
     statusEl.style.color = 'var(--text-secondary)';
-    resEl.value = '';
+    if (this.resMonaco) this.resMonaco.setValue('');
+    else if (resEl) resEl.value = '';
 
     // Build headers
     const headers = {};
@@ -1120,11 +1191,21 @@ export const SoapClientPanel = {
       const color = response.ok ? '#3fb950' : '#f85149';
       statusEl.innerText = `${response.status} ${response.statusText} — ${elapsed}ms`;
       statusEl.style.color = color;
-      resEl.value = prettyXmlV2(text);
+      if (this.resMonaco) {
+        this.resMonaco.setValue(prettyXmlV2(text));
+        this._saveSelectedOp({ lastResponse: this.resMonaco.getValue() });
+      } else {
+        resEl.value = prettyXmlV2(text);
+        this._saveSelectedOp({ lastResponse: resEl.value });
+      }
     } catch (err) {
       statusEl.innerText = 'Request failed';
       statusEl.style.color = '#f85149';
-      resEl.value = `Request Failed:\n${err.message}\n\n(If this is a CORS error, the remote service does not allow browser requests. This will work without CORS restrictions in the Desktop app.)`;
+      if (this.resMonaco) {
+        this.resMonaco.setValue(`Request Failed:\n${err.message}\n\n(If this is a CORS error, the remote service does not allow browser requests. This will work without CORS restrictions in the Desktop app.)`);
+      } else {
+        resEl.value = `Request Failed:\n${err.message}\n\n(If this is a CORS error, the remote service does not allow browser requests. This will work without CORS restrictions in the Desktop app.)`;
+      }
     }
   },
 
