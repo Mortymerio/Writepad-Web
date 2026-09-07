@@ -43,19 +43,23 @@ function prettyXmlV2(xml) {
     const doc = parser.parseFromString(xml, 'application/xml');
     if (doc.querySelector('parsererror')) return xml;
     const xs = new XMLSerializer();
-    // re-serialize and indent manually
     let out = xs.serializeToString(doc);
-    // Simple indent
     let level = 0;
-    return out
-      .replace(/></g, '>\n<')
+    
+    // Remove whitespace between tags, then add standard newlines
+    let clean = out.replace(/>\s+</g, '><').replace(/></g, '>\n<');
+    
+    return clean
       .split('\n')
       .map(line => {
-        if (line.match(/^<\//) || line.match(/\/>/)) level = Math.max(0, level - 1);
-        const indented = '  '.repeat(level) + line;
-        if (line.match(/^<[^/?!][^>]*[^/]>/) && !line.match(/<.*>.*<\//)) level++;
-        return indented;
+        line = line.trim();
+        if (!line) return '';
+        if (line.match(/^<\//)) level = Math.max(0, level - 1);
+        let ind = '  '.repeat(level) + line;
+        if (line.match(/^<[^/?!][^>]*>/) && !line.match(/\/>$/) && !line.match(/<.*>.*<\//)) level++;
+        return ind;
       })
+      .filter(l => l)
       .join('\n');
   } catch {
     return xml;
