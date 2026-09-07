@@ -256,9 +256,6 @@ export const SoapClientPanel = {
     <div style="display:flex;align-items:center;gap:6px;">
       <span style="font-weight:bold;color:#aaa;white-space:nowrap;font-size:0.85em;">Endpoint</span>
       <input id="soap-quick-endpoint" type="text" placeholder="https://example.com/service" style="${inputStyle()};flex:1;">
-      <label style="font-size:0.8em;color:#aaa;display:flex;align-items:center;gap:4px;cursor:pointer;" title="Bypasses browser CORS by proxying through corsproxy.io">
-        <input type="checkbox" id="soap-quick-use-proxy"> CORS Proxy
-      </label>
     </div>
 
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -310,9 +307,6 @@ export const SoapClientPanel = {
       <label style="font-size:0.85em;color:var(--text-secondary);">WSDL URL (will be fetched) or paste XML below</label>
       <div style="display:flex;align-items:center;gap:6px;margin:4px 0 6px;">
         <input id="soap-wsdl-url" type="text" placeholder="https://example.com/service?wsdl" style="${inputStyle()};flex:1;box-sizing:border-box;">
-        <label style="font-size:0.8em;color:#aaa;display:flex;align-items:center;gap:4px;cursor:pointer;" title="Bypasses browser CORS by proxying through corsproxy.io">
-          <input type="checkbox" id="soap-wsdl-use-proxy"> Proxy
-        </label>
         <button id="soap-wsdl-fetch-btn" style="${btnStyle()}">Fetch from URL</button>
       </div>
       <div style="margin:8px 0;text-align:center;color:var(--text-secondary);font-size:0.8em;">— or paste WSDL XML directly —</div>
@@ -410,9 +404,6 @@ export const SoapClientPanel = {
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-weight:bold;color:var(--text-secondary);white-space:nowrap;font-size:0.85em;">Endpoint</span>
         <input id="soap-endpoint" type="text" value="${escapeHtml(defaultEndpoint)}" placeholder="https://example.com/service" style="${inputStyle()};flex:1;">
-        <label style="font-size:0.8em;color:#aaa;display:flex;align-items:center;gap:4px;cursor:pointer;" title="Bypasses browser CORS by proxying through corsproxy.io">
-          <input type="checkbox" id="soap-use-proxy"> CORS Proxy
-        </label>
         <button id="soap-save-endpoint" title="Save endpoint to operation" style="${btnStyle()}">💾</button>
       </div>
 
@@ -652,14 +643,9 @@ export const SoapClientPanel = {
         catch { resEl.value = 'Error: Custom headers must be valid JSON.'; statusEl.innerText = 'Error'; statusEl.style.color = '#f85149'; return; }
       }
 
-      let finalEndpoint = endpoint;
-      if (container.querySelector('#soap-quick-use-proxy')?.checked) {
-        finalEndpoint = 'https://corsproxy.io/?' + encodeURIComponent(endpoint);
-      }
-
       try {
         const t0 = performance.now();
-        const resp = await fetch(finalEndpoint, { method: 'POST', headers, body });
+        const resp = await fetch(endpoint, { method: 'POST', headers, body });
         const elapsed = Math.round(performance.now() - t0);
         const text = await resp.text();
         statusEl.innerText = `${resp.status} ${resp.statusText} — ${elapsed}ms`;
@@ -1125,14 +1111,9 @@ export const SoapClientPanel = {
       }
     }
 
-    let finalEndpoint = endpoint;
-    if (container.querySelector('#soap-use-proxy')?.checked) {
-      finalEndpoint = 'https://corsproxy.io/?' + encodeURIComponent(endpoint);
-    }
-
     try {
       const t0 = performance.now();
-      const response = await fetch(finalEndpoint, { method: 'POST', headers, body: requestBody });
+      const response = await fetch(endpoint, { method: 'POST', headers, body: requestBody });
       const elapsed = Math.round(performance.now() - t0);
       const text = await response.text();
 
@@ -1158,14 +1139,9 @@ export const SoapClientPanel = {
       const url = container.querySelector('#soap-wsdl-url').value.trim();
       if (!url) { wsdlError.innerText = 'URL is required'; return; }
       
-      let finalUrl = url;
-      if (container.querySelector('#soap-wsdl-use-proxy')?.checked) {
-        finalUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-      }
-
       wsdlError.innerText = 'Fetching...';
       try {
-        const resp = await fetch(finalUrl);
+        const resp = await fetch(url);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         container.querySelector('#soap-wsdl-xml').value = await resp.text();
         wsdlError.innerText = '✓ WSDL fetched. Click "Import" to continue.';
