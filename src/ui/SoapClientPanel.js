@@ -242,7 +242,7 @@ export const SoapClientPanel = {
 
   <!-- Extension Banner -->
   <div id="soap-ext-banner" style="display:none;background:#1f6feb;color:#fff;padding:8px 12px;margin:8px;border-radius:4px;font-size:0.85em;align-items:center;justify-content:space-between;flex-shrink:0;">
-    <span style="flex:1;">¿Probando APIs internas/VPN? <a href="#" onclick="alert('Pronto estará disponible el link a la Chrome Web Store. ¡Ya enviada a revisión!'); return false;" style="color:#fff;text-decoration:underline;font-weight:bold;">Instalá la extensión oficial</a> para saltar el bloqueo CORS.</span>
+    <span style="flex:1;">¿Probando APIs internas/VPN? <a href="https://chromewebstore.google.com/detail/writepad-cors-unlocker/fmdlmgnflipkippjphldnlbllcaaiacb" target="_blank" style="color:#fff;text-decoration:underline;font-weight:bold;">Instalá la extensión oficial</a> para saltar el bloqueo CORS.</span>
     <button id="soap-ext-banner-close" style="background:none;border:none;color:#fff;cursor:pointer;font-size:1.1em;padding:0 4px;">✕</button>
   </div>
 
