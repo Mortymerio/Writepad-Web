@@ -3,7 +3,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as monaco from 'monaco-editor';
-import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution.js';
 
 const STORAGE_KEY = 'writepad_soap_projects';
 
@@ -304,7 +303,7 @@ export const SoapClientPanel = {
         <button id="soap-quick-skeleton" style="${btnStyle()}">☰ SOAP 1.1 skeleton</button>
       </div>
     </div>
-    <textarea id="soap-quick-body" spellcheck="false" rows="10" placeholder='<?xml version="1.0" encoding="UTF-8"?>&#10;<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">&#10;  <soapenv:Header/>&#10;  <soapenv:Body>&#10;    <!-- your content here -->&#10;  </soapenv:Body>&#10;</soapenv:Envelope>' style="${textareaStyle()};flex:1;min-height:160px;width:100%;box-sizing:border-box;"></textarea>
+    <div id="soap-quick-body" style="flex:1;min-height:160px;width:100%;box-sizing:border-box;border:1px solid var(--border-color);border-radius:4px;overflow:hidden;"></div>
 
     <div style="display:flex;gap:6px;align-items:center;">
       <button id="soap-quick-send" style="padding:6px 18px;background:#238636;color:#fff;border:1px solid #2ea043;border-radius:4px;cursor:pointer;font-size:0.85em;font-weight:bold;">▶ Send</button>
@@ -473,7 +472,7 @@ export const SoapClientPanel = {
           <button id="soap-btn-reset" title="Reset to skeleton" style="${btnStyle()}">↺ Reset</button>
         </div>
       </div>
-      <textarea id="soap-request-body" spellcheck="false" style="${textareaStyle()};flex:1;min-height:140px;resize:vertical;">${escapeHtml(op.requestBody || '')}</textarea>
+      <div id="soap-request-body" style="flex:1;min-height:140px;width:100%;box-sizing:border-box;border:1px solid var(--border-color);border-radius:4px;overflow:hidden;"></div>
       <div id="soap-validation-result" style="display:none;padding:8px;border-radius:4px;font-size:0.82em;font-family:monospace;white-space:pre-wrap;border:1px solid var(--border-color);max-height:140px;overflow-y:auto;"></div>
 
       <!-- Send button -->
@@ -613,15 +612,31 @@ export const SoapClientPanel = {
   </env:Body>
 </env:Envelope>`;
 
+    if (this.quickReqMonaco) { this.quickReqMonaco.dispose(); this.quickReqMonaco = null; }
+    const quickReqDiv = container.querySelector('#soap-quick-body');
+    if (quickReqDiv) {
+      this.quickReqMonaco = monaco.editor.create(quickReqDiv, {
+        value: SKELETON_11,
+        language: 'xml',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: 'off'
+      });
+    }
+
     container.querySelector('#soap-quick-skeleton')?.addEventListener('click', () => {
       const ver = container.querySelector('#soap-quick-version')?.value || '1.1';
-      const body = container.querySelector('#soap-quick-body');
-      if (body) body.value = ver === '1.2' ? SKELETON_12 : SKELETON_11;
+      if (this.quickReqMonaco) {
+        this.quickReqMonaco.setValue(ver === '1.2' ? SKELETON_12 : SKELETON_11);
+      }
     });
 
     container.querySelector('#soap-quick-beautify')?.addEventListener('click', () => {
-      const body = container.querySelector('#soap-quick-body');
-      if (body) body.value = prettyXmlV2(body.value);
+      if (this.quickReqMonaco) {
+        this.quickReqMonaco.setValue(prettyXmlV2(this.quickReqMonaco.getValue()));
+      }
     });
 
     if (this.quickResMonaco) { this.quickResMonaco.dispose(); this.quickResMonaco = null; }
@@ -667,7 +682,7 @@ export const SoapClientPanel = {
       const endpoint = container.querySelector('#soap-quick-endpoint')?.value.trim();
       const soapAction = container.querySelector('#soap-quick-action')?.value.trim() || '';
       const version = container.querySelector('#soap-quick-version')?.value || '1.1';
-      const body = container.querySelector('#soap-quick-body')?.value || '';
+      const body = this.quickReqMonaco ? this.quickReqMonaco.getValue() : '';
       const headersStr = container.querySelector('#soap-quick-headers')?.value.trim() || '';
       const statusEl = container.querySelector('#soap-quick-status');
 
@@ -847,9 +862,22 @@ export const SoapClientPanel = {
     const op = this._getSelectedOp();
     if (!op) return;
 
-    // Save request body on change
-    const reqBody = container.querySelector('#soap-request-body');
-    if (reqBody) reqBody.oninput = () => this._saveSelectedOp({ requestBody: reqBody.value });
+    if (this.reqMonaco) { this.reqMonaco.dispose(); this.reqMonaco = null; }
+    const reqDiv = container.querySelector('#soap-request-body');
+    if (reqDiv) {
+      this.reqMonaco = monaco.editor.create(reqDiv, {
+        value: op.requestBody || '',
+        language: 'xml',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: 'off'
+      });
+      this.reqMonaco.onDidChangeModelContent(() => {
+        this._saveSelectedOp({ requestBody: this.reqMonaco.getValue() });
+      });
+    }
 
     // Initialize Monaco for Response
     if (this.resMonaco) { this.resMonaco.dispose(); this.resMonaco = null; }
@@ -893,17 +921,19 @@ export const SoapClientPanel = {
 
     // Beautify request
     container.querySelector('#soap-btn-beautify-req')?.addEventListener('click', () => {
-      if (!reqBody) return;
-      reqBody.value = prettyXmlV2(reqBody.value);
-      this._saveSelectedOp({ requestBody: reqBody.value });
+      if (this.reqMonaco) {
+        const val = this.reqMonaco.getValue();
+        this.reqMonaco.setValue(prettyXmlV2(val));
+      }
     });
 
     // Reset request body
     container.querySelector('#soap-btn-reset')?.addEventListener('click', () => {
-      if (!reqBody) return;
-      if (!confirm('Reset request body to skeleton?')) return;
-      reqBody.value = buildSoapEnvelope(op.name, [], op.soapVersion || '1.1');
-      this._saveSelectedOp({ requestBody: reqBody.value });
+      if (this.reqMonaco) {
+        if (!confirm('Reset request body to skeleton?')) return;
+        const skel = buildSoapEnvelope(op.name, [], op.soapVersion || '1.1');
+        this.reqMonaco.setValue(skel);
+      }
     });
 
     // Validate request against WSDL
@@ -945,7 +975,7 @@ export const SoapClientPanel = {
 
   _validateRequest(container) {
     const resultEl = container.querySelector('#soap-validation-result');
-    const reqBody = container.querySelector('#soap-request-body')?.value || '';
+    const reqBody = this.reqMonaco ? this.reqMonaco.getValue() : '';
     const op = this._getSelectedOp();
     const proj = this.projects.find(p => p.id === this.selectedProjectId);
 
@@ -1121,7 +1151,7 @@ export const SoapClientPanel = {
     const endpoint = container.querySelector('#soap-endpoint')?.value.trim();
     const soapAction = container.querySelector('#soap-action')?.value.trim() || '';
     const soapVersion = container.querySelector('#soap-version')?.value || '1.1';
-    const body = container.querySelector('#soap-request-body')?.value || '';
+    const body = this.reqMonaco ? this.reqMonaco.getValue() : '';
     const customHeadersStr = container.querySelector('#soap-custom-headers')?.value.trim() || '';
     const authType = container.querySelector('#soap-auth-type')?.value || 'none';
     const authUser = container.querySelector('#soap-auth-user')?.value || '';
