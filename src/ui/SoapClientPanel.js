@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as monaco from 'monaco-editor';
+import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution.js';
 
 const STORAGE_KEY = 'writepad_soap_projects';
 
